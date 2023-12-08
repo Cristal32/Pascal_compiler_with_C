@@ -1,0 +1,29 @@
+# Code::Blocks specific files
+*.cbp
+*.layout
+*.depend
+
+# Compiled object files
+*.o
+*.obj
+
+# Compiled executables
+*.exe
+*.out
+
+# Compiled libraries
+*.a
+*.lib
+
+# Temporary files
+*.~*
+
+# Code::Blocks project directory
+*.cbp.shared
+
+# Code::Blocks user-specific files
+*.depend.user
+*.layout.user
+*.cbp.user
+*.workspace.user
+*.layout.user
