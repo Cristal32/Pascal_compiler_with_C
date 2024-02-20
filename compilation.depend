@@ -1,0 +1,34 @@
+# depslib dependency file v1.0
+1700232495 source:c:\users\hp\desktop\etude\tp de structure\compilation\compila.c
+
+1702043479 source:c:\users\hp\desktop\etude\tp de structure\compilation\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+
+1701434169 source:c:\users\hp\desktop\etude\tp de structure\compilation\analyseur_syntaxique.c
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+
+1701434161 source:c:\users\hp\desktop\etude\tp de structure\compilation\anlyseur-lexical.c
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+
+1707777200 source:c:\users\hp\desktop\etude\.2a\projetcompilation\analyseur_syntaxique.c
+
+1707777161 source:c:\users\hp\desktop\etude\.2a\projetcompilation\anlyseur-lexical.c
+
+1708469294 source:c:\users\hp\desktop\etude\.2a\projetcompilation\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+
+1707772585 source:c:\users\hp\desktop\etude\.2a\projetcompilation\semantique.c
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+
