@@ -176,11 +176,16 @@ void case_label();
 void set_type();
 
 // functions definition
+// ================================== Lire_Car() : read the next character ==================================
 int ligne_actuelle = 1;
-
 FILE *fichier;
-
 char Car_Cour; // caractere courant
+
+void Lire_Car()
+{
+    Car_Cour = fgetc(fichier);
+    if (Car_Cour == '\n') { ligne_actuelle++; } // Incrémentation du numéro de ligne en cas de saut de ligne
+}
 
 // ================================== lire_mot() ==================================
 /* It reads a word from input and checks if it matches any of the predefined keywords in Pascal. Let's break down what it does:
@@ -195,8 +200,7 @@ void lire_mot()
     Lire_Car(); // Read the next character
 
     // Do the same for index >= 1, while the current character is a letter (isalpha()) or a number (isdigit())
-    while (isalpha(Car_Cour) || isdigit(Car_Cour))
-    {
+    while (isalpha(Car_Cour) || isdigit(Car_Cour)) {
         mot[indice++] = Car_Cour;
         Lire_Car();
     }
@@ -244,13 +248,13 @@ void lire_mot()
     else if (stricmp(mot, "in") == 0) { SYM.CODE = IN_TOKEN; }
     else if (stricmp(mot, "div") == 0) { SYM.CODE = DIVV_TOKEN; }
     else if (stricmp(mot, "mod") == 0) { SYM.CODE = MOD_TOKEN; }
-    else { SYM.CODE = ID_TOKEN; } // if non of the special keywords, then it's an identifier
+    else { SYM.CODE = ID_TOKEN; } // if none of the special keywords, then it's an identifier
 
-    // Stockage du mot dans le jeton
-    strcpy(SYM.NOM, mot);
+    strcpy(SYM.NOM, mot); // then the current symbol's NOM is mot itself
 }
 
-//===================== Lire_nombre ==========================
+// ================================== Lire_nombre() ==================================
+// ex: on lit le nombre 13 ==> SYM = (NUM_TOKEN, '13')
 void lire_nombre()
 {
     char nombre[11];
@@ -261,8 +265,7 @@ void lire_nombre()
     Lire_Car();
 
     // Lecture des chiffres suivants
-    while (isdigit(Car_Cour))
-    {
+    while (isdigit(Car_Cour)) {
         nombre[indice++] = Car_Cour;
         Lire_Car();
     }
@@ -275,83 +278,73 @@ void lire_nombre()
     strcpy(SYM.NOM, nombre);
 }
 
-//===================== Sym_Suiv ==========================
+// ================================== Sym_Suiv() ==================================
+// Manage the next symbol to a specific symbol. ex: var x = 5; '=' is the next symbol to 'x'
 void Sym_Suiv()
 {
-    while (Car_Cour == ' ' || Car_Cour == '\n' || Car_Cour == '\t')
-    {
-        Lire_Car();
-    }
-    if (isalpha(Car_Cour))
-    {
-        lire_mot();
-    }
-    else if (isdigit(Car_Cour))
-    {
-        lire_nombre();
-    }
-    else
-    {
-        switch (Car_Cour)
-        {
-        case ';':
-            SYM.CODE = PV_TOKEN;
-            Lire_Car();
-            break;
-        case '..':
-            SYM.CODE = DOTDOT_TOKEN;
-            Lire_Car();
-            break;
+    //ignore spaces ' ', end of lines '\n' and tabulations '\t'
+    while (Car_Cour == ' ' || Car_Cour == '\n' || Car_Cour == '\t') { Lire_Car(); }
 
-        case '+':
-            SYM.CODE = PLUS_TOKEN;
-            Lire_Car();
-            break;
+    //once we hit a letter or number, read the word
+    if (isalpha(Car_Cour)) { lire_mot(); }
+    else if (isdigit(Car_Cour)) { lire_nombre(); }
+    else {
+        switch (Car_Cour) {
 
-        case '-':
-            SYM.CODE = MOINS_TOKEN;
-            Lire_Car();
-            break;
-
-       case '*':
+            case ';':
+                SYM.CODE = PV_TOKEN;
                 Lire_Car();
-                if (Car_Cour == ')'||Car_Cour == '}') {
+                break;
+
+            case '..':
+                SYM.CODE = DOTDOT_TOKEN; // '..' : range (ex: array[1..10]
+                Lire_Car();
+                break;
+
+            case '+':
+                SYM.CODE = PLUS_TOKEN;
+                Lire_Car();
+                break;
+
+            case '-':
+                SYM.CODE = MOINS_TOKEN;
+                Lire_Car();
+                break;
+
+            case '*':
+                Lire_Car();
+                if (Car_Cour == ')' || Car_Cour == '}') { // if we have *) or *}  ==> comment
                     SYM.CODE = COMMENTF_TOKEN;
                     Lire_Car();
-                }else {
-                    SYM.CODE = MULT_TOKEN;
-
-                }
+                }else { SYM.CODE = MULT_TOKEN; } // if just * ==> multiplication
                 break;
 
             case '/':
                 Lire_Car();
-                if (Car_Cour == '/') {
+                if (Car_Cour == '/') { // if we have // ==> comment
                     SYM.CODE = COMMENTO_TOKEN;
                     Lire_Car();
-                } else {
-                    SYM.CODE = DIV_TOKEN;
-                }
-                break;
-            case '\'':
-                SYM.CODE = QUOTE_TOKEN;
-                Lire_Car();
+                } else { SYM.CODE = DIV_TOKEN; } // if just / ==> divide
                 break;
 
-            case '{':
+            case '\'':
+                SYM.CODE = QUOTE_TOKEN; // if we have quote character: '
                 Lire_Car();
-                if (Car_Cour == '*') {
-                    SYM.CODE = COMMENTO_TOKEN;
-                    Lire_Car();
-                } else {
-                    SYM.CODE = CBO_TOKEN;
-                }
                 break;
 
             case ',':
                 SYM.CODE = VIR_TOKEN;
                 Lire_Car();
                 break;
+
+            case '{':
+                Lire_Car();
+                if (Car_Cour == '*') { // if we have {*  ==> comment
+                    SYM.CODE = COMMENTO_TOKEN;
+                    Lire_Car();
+                } else { SYM.CODE = CBO_TOKEN; } // if just ( ==> Curly Brace Fermante
+                break;
+
              case '}':
                 SYM.CODE = CBF_TOKEN;
                 Lire_Car();
@@ -359,55 +352,49 @@ void Sym_Suiv()
 
             case ':':
                 Lire_Car();
-                if (Car_Cour == '=') {
+                if (Car_Cour == '=') { // if we have := then affectation symbol
                     SYM.CODE = AFF_TOKEN;
                     Lire_Car();
-                } else {
-                    SYM.CODE = TP_TOKEN;
-                }
+                } else { SYM.CODE = TP_TOKEN; } // if just : then Type declaration
                 break;
 
             case '<':
                 Lire_Car();
-                if (Car_Cour == '=') {
+                if (Car_Cour == '=') { // if we have <=
                     SYM.CODE = INFEG_TOKEN;
                     Lire_Car();
-                } else if (Car_Cour == '>') {
+                } else if (Car_Cour == '>') { // if we have <> (equiv to !=)
                     SYM.CODE = DIFF_TOKEN;
                     Lire_Car();
-                } else {
-                    SYM.CODE = INF_TOKEN;
-                }
+                } else { SYM.CODE = INF_TOKEN; } // if just <
                 break;
 
             case '>':
                 Lire_Car();
-                if (Car_Cour == '=') {
+                if (Car_Cour == '=') { // if we have >=
                     SYM.CODE = SUPEG_TOKEN;
                     Lire_Car();
-                } else {
-                    SYM.CODE = SUP_TOKEN;
-                }
+                } else { SYM.CODE = SUP_TOKEN; } // if just >
                 break;
 
             case '(':
                 Lire_Car();
-                if (Car_Cour == '*') {
+                if (Car_Cour == '*') { // if we have (*
                     SYM.CODE = COMMENTO_TOKEN;
                     Lire_Car();
-                } else {
-                    SYM.CODE = PO_TOKEN;
-                }
-                break;
-            case '=':
-                SYM.CODE = EG_TOKEN;
-                Lire_Car();
+                } else { SYM.CODE = PO_TOKEN; } // if just (
                 break;
 
             case ')':
                 SYM.CODE = PF_TOKEN;
                 Lire_Car();
                 break;
+
+            case '=':
+                SYM.CODE = EG_TOKEN;
+                Lire_Car();
+                break;
+
             case '[':
                 SYM.CODE = CROCHETO_TOKEN;
                 Lire_Car();
@@ -418,8 +405,7 @@ void Sym_Suiv()
                 Lire_Car();
                 break;
 
-
-            case EOF:
+            case EOF: //End Of File
                 SYM.CODE = FIN_TOKEN;
                 break;
 
@@ -431,45 +417,42 @@ void Sym_Suiv()
 
 }
 
-
-
-//===================== Lire_Car ==========================
-void Lire_Car()
-{
-    Car_Cour = fgetc(fichier);
-    if (Car_Cour == '\n') {
-        ligne_actuelle++; // Incrémentation du numéro de ligne en cas de saut de ligne
-    }
-}
-
-//===================== Erreur ==========================
+// ================================== Erreur(CODES_ERR) ==================================
+// Print an error message, with the line and the error code, as well as the current symbol's CODE and NOM
 void Erreur(CODES_ERR code)
 {
     printf("Erreur à la ligne %d: %d\n", ligne_actuelle, code);
-
     printf("Current Token: %d\n", SYM.CODE);
     printf("Current Lexeme: %s\n", SYM.NOM);
     exit(EXIT_FAILURE);
 }
 
-//===================== Test_Symbole ==========================
+// ================================== Test_Symbole(CODES, CODES_ERR) ==================================
+// if the current symbol's code matches the code, move to the next symbol, else error function
 void Test_Symbole(CODES cl, CODES_ERR COD_ERR)
 {
-    if (SYM.CODE == cl)
-    {
-        Sym_Suiv();
-    }
-    else
-        Erreur(COD_ERR);
+    if (SYM.CODE == cl) { Sym_Suiv(); }
+    else {Erreur(COD_ERR); }
 }
 
-//===================== PROGRAM ==========================
+//===================== BLOCK ==========================
+void BLOCK()
+{
+    label_declaration_part(); //in the block, we usually start with label declarations (go to)
+    if (SYM.CODE == CONST_TOKEN) { constant_definition_part(); } // constant declarations
+    else { type_definition_part(); } // type declarations
+    variable_declaration_part(); //variable declaration
+    // procedure_and_function_declaration_part();
+    // statement_part();
+}
+
+// ================================== PROGRAM ==================================
 void PROGRAM()
 {
-    Test_Symbole(PROGRAM_TOKEN, PROGRAM_ERR);
-    Test_Symbole(ID_TOKEN, ID_ERR);
-    Test_Symbole(PV_TOKEN, PV_ERR);
-    BLOCK();
+    Test_Symbole(PROGRAM_TOKEN, PROGRAM_ERR); // Basically, necessarily the 1st symbol of the program should be the "program" symbol
+    Test_Symbole(ID_TOKEN, ID_ERR); // necessarily the 2nd symbol should be the name of the program which will be an identifier
+    Test_Symbole(PV_TOKEN, PV_ERR); // then the 3rd symbole is ';'
+    BLOCK(); // and now it's a block of code
 
     //Test_Symbole(PT_TOKEN, PT_ERR);
     // Check for the dot after BLOCK
@@ -491,20 +474,6 @@ void PROGRAM()
             Sym_Suiv();
         }
     }
-}
-
-//===================== BLOCK ==========================
-void BLOCK()
-{
-    label_declaration_part();
-    if (SYM.CODE == CONST_TOKEN) {
-        constant_definition_part();
-    } else {
-        type_definition_part();
-    }
-    variable_declaration_part();
-    // procedure_and_function_declaration_part();
-    // statement_part();
 }
 //===================== label declaration part ==========================
 void label_declaration_part() {
