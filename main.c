@@ -270,13 +270,15 @@ void lire_nombre()
         Lire_Car();
     }
 
-    // Ajout du caract�re de fin de cha�ne
+    // Ajout du caractere de fin de chaine
     nombre[indice] = '\0';
 
     // Stockage du nombre dans le jeton
     SYM.CODE = NUM_TOKEN;
     strcpy(SYM.NOM, nombre);
 }
+
+// ==================================================================== SYNTAXIQUE ====================================================================
 
 // ================================== Sym_Suiv() ==================================
 // Manage the next symbol to a specific symbol. ex: var x = 5; '=' is the next symbol to 'x'
@@ -434,48 +436,18 @@ void Test_Symbole(CODES cl, CODES_ERR COD_ERR)
     if (SYM.CODE == cl) { Sym_Suiv(); }
     else {Erreur(COD_ERR); }
 }
-
-//===================== BLOCK ==========================
+// ================================== BLOCK ==================================
 void BLOCK()
 {
     label_declaration_part(); //in the block, we usually start with label declarations (go to)
-    if (SYM.CODE == CONST_TOKEN) { constant_definition_part(); } // constant declarations
-    else { type_definition_part(); } // type declarations
+    constant_definition_part(); // constant declarations
+    type_definition_part(); // type declarations
     variable_declaration_part(); //variable declaration
     // procedure_and_function_declaration_part();
     // statement_part();
 }
 
-// ================================== PROGRAM ==================================
-void PROGRAM()
-{
-    Test_Symbole(PROGRAM_TOKEN, PROGRAM_ERR); // Basically, necessarily the 1st symbol of the program should be the "program" symbol
-    Test_Symbole(ID_TOKEN, ID_ERR); // necessarily the 2nd symbol should be the name of the program which will be an identifier
-    Test_Symbole(PV_TOKEN, PV_ERR); // then the 3rd symbole is ';'
-    BLOCK(); // and now it's a block of code
-
-    //Test_Symbole(PT_TOKEN, PT_ERR);
-    // Check for the dot after BLOCK
-    if (SYM.CODE == PT_TOKEN)
-    {
-        Sym_Suiv(); // Consume the dot
-        printf("Program execution completed.\nBRAVO: le programme est correcte FIN PROGRAMME!!!");
-    }
-    else
-    {
-        Erreur(PT_ERR);
-        printf("PAS BRAVO: fin de programme erron�e!!!!\n");
-
-        // Add this line to consume symbols until the end of the file
-        while (SYM.CODE != FIN_TOKEN)
-        {
-            printf("Current Token: %d\n", SYM.CODE);
-            printf("Current Lexeme: %s\n", SYM.NOM);
-            Sym_Suiv();
-        }
-    }
-}
-//===================== label declaration part ==========================
+// ================================== label declaration part ==================================
 void label_declaration_part() {
     if (SYM.CODE == LABEL_TOKEN) {
         Sym_Suiv(); // Consommer le token "label"
@@ -484,19 +456,16 @@ void label_declaration_part() {
         // Ensuite, analysez les virgules suivies de labels
         while (SYM.CODE == VIR_TOKEN) {
             Sym_Suiv(); // Consommer le token ","
-            if (SYM.CODE == NUM_TOKEN) {
-                label();    // Analyser le prochain label
-            } else {
-                // Gérer une erreur si le token suivant n'est pas un nombre
-                printf("Erreur : Nombre attendu après ',' dans la déclaration de label\n");
+            if (SYM.CODE == NUM_TOKEN) { label(); } // Analyser le prochain label
+            else { // Gérer une erreur si le token suivant n'est pas un nombre
+                printf("Erreur: Nombre attendu après ',' dans la déclaration de label\n");
                 Erreur(NUM_ERR);
             }
         }
 
-        if (SYM.CODE == PV_TOKEN) {
-            Sym_Suiv(); // Consommer le token ";"
-        } else {
-            // Gérer une erreur si le ";"
+        if (SYM.CODE == PV_TOKEN) { Sym_Suiv(); } // Consommer le token ";"
+        else {
+            // Gérer une erreur si pas de ";"
             printf("Erreur : ';' attendu après la déclaration de label\n");
             Erreur(PV_ERR);
         }
@@ -506,8 +475,7 @@ void label_declaration_part() {
     }
 }
 
-//===================== LABEL ==========================
-
+// ================================== label() ==================================
 void label() {
     if (SYM.CODE == NUM_TOKEN) {
         // Traitement du label
@@ -594,6 +562,36 @@ void constant() {
         // Gérer une erreur si le token n'est pas une constante valide
         printf("Erreur : Constante invalide dans la définition de constante\n");
         Erreur(CONST_ERR);
+    }
+}
+
+// ================================== PROGRAM ==================================
+void PROGRAM()
+{
+    Test_Symbole(PROGRAM_TOKEN, PROGRAM_ERR); // Basically, necessarily the 1st symbol of the program should be the "program" symbol
+    Test_Symbole(ID_TOKEN, ID_ERR); // necessarily the 2nd symbol should be the name of the program which will be an identifier
+    Test_Symbole(PV_TOKEN, PV_ERR); // then the 3rd symbole is ';'
+    BLOCK(); // and now it's a block of code
+
+    //Test_Symbole(PT_TOKEN, PT_ERR);
+    // Check for the dot after BLOCK
+    if (SYM.CODE == PT_TOKEN)
+    {
+        Sym_Suiv(); // Consume the dot
+        printf("Program execution completed.\nBRAVO: le programme est correcte FIN PROGRAMME!!!");
+    }
+    else
+    {
+        Erreur(PT_ERR);
+        printf("PAS BRAVO: fin de programme erron�e!!!!\n");
+
+        // Add this line to consume symbols until the end of the file
+        while (SYM.CODE != FIN_TOKEN)
+        {
+            printf("Current Token: %d\n", SYM.CODE);
+            printf("Current Lexeme: %s\n", SYM.NOM);
+            Sym_Suiv();
+        }
     }
 }
 
@@ -723,7 +721,7 @@ void type_definition_part() {
 
         // Vérifier le point-virgule final
         if (SYM.CODE != PV_TOKEN) {
-            printf("Erreur : Point-virgule attendu après la definition de type\n");
+            printf("Erreur : Point-virgule attendu après la définition de type\n");
         Erreur(PV_ERR);
         }
 
@@ -744,7 +742,7 @@ void type_definition() {
 
         // Vérifier le signe "="
         if (SYM.CODE != EG_TOKEN) {
-            printf("Erreur : Signe '=' attendu dans la definition de type\n");
+            printf("Erreur : Signe '=' attendu dans la définition de type\n");
         Erreur(EG_ERR);
         }
 
@@ -919,7 +917,7 @@ void structured_type() {
         file_type();
     } else {
         // Si aucun des cas ci-dessus n'est vrai, signaler une erreur
-        printf("Erreur : Type structure attendu\n");
+        printf("Erreur : Type structuré attendu\n");
         Erreur(TYPE_ERR);
     }
 }
@@ -966,7 +964,7 @@ void array_type() {
                 component_type();
             } else {
                 // Si le prochain jeton n'est pas "of", signaler une erreur
-                printf("Erreur : Mot-cle 'of' attendu\n");
+                printf("Erreur : Mot-clé 'of' attendu\n");
         Erreur(OF_ERR);
             }
         } else {
@@ -976,7 +974,7 @@ void array_type() {
         }
     } else {
         // Si le prochain jeton n'est pas "array", signaler une erreur
-        printf("Erreur : Mot-cle 'array' attendu\n");
+        printf("Erreur : Mot-clé 'array' attendu\n");
         Erreur(ARRAY_ERR);
     }
 }
@@ -1006,12 +1004,12 @@ void record_type() {
             Sym_Suiv();
         } else {
             // Si le prochain jeton n'est pas "end", signaler une erreur
-            printf("Erreur : Mot-cle 'end' attendu\n");
+            printf("Erreur : Mot-clé 'end' attendu\n");
         Erreur(END_ERR);
         }
     } else {
         // Si le prochain jeton n'est pas "record", signaler une erreur
-        printf("Erreur : Mot-cle 'record' attendu\n");
+        printf("Erreur : Mot-clé 'record' attendu\n");
         Erreur(RECORD_ERR);
     }
 }
@@ -1114,12 +1112,12 @@ void variant_part() {
             }
         } else {
             // Si le prochain jeton n'est pas "of", signaler une erreur
-            printf("Erreur : Mot-cle 'of' attendu\n");
+            printf("Erreur : Mot-clé 'of' attendu\n");
             exit(1);
         }
     } else {
         // Si le prochain jeton n'est pas "case", signaler une erreur
-        printf("Erreur : Mot-cle 'case' attendu\n");
+        printf("Erreur : Mot-clé 'case' attendu\n");
         exit(1);
     }
 }
@@ -1187,7 +1185,7 @@ void variant() {
         }
     } else {
         // Si le prochain jeton n'est pas "case", signaler une erreur
-        printf("Erreur : Mot-cle 'case' attendu\n");
+        printf("Erreur : Mot-clé 'case' attendu\n");
         exit(1);
     }
 }
@@ -1232,12 +1230,12 @@ void set_type() {
             base_type();
         } else {
             // Si le prochain jeton n'est pas "of", signaler une erreur
-            printf("Erreur : Mot-cle 'of' attendu\n");
+            printf("Erreur : Mot-clé 'of' attendu\n");
             exit(1);
         }
     } else {
         // Si le prochain jeton n'est pas "set", signaler une erreur
-        printf("Erreur : Mot-cle 'set' attendu\n");
+        printf("Erreur : Mot-clé 'set' attendu\n");
         exit(1);
     }
 }
@@ -1314,12 +1312,12 @@ void file_type() {
             type();
         } else {
             // Si le prochain jeton n'est pas "of", signaler une erreur
-            printf("Erreur : Mot-cle 'of' attendu\n");
+            printf("Erreur : Mot-clé 'of' attendu\n");
             exit(1);
         }
     } else {
         // Si le prochain jeton n'est pas "file", signaler une erreur
-        printf("Erreur : Mot-cle 'file' attendu\n");
+        printf("Erreur : Mot-clé 'file' attendu\n");
         exit(1);
     }
 }
@@ -1360,7 +1358,7 @@ int is_simple_type() {
 
 int main()
 {
-    fichier = fopen("test.p", "r");
+    fichier = fopen("program.p", "r");
     if (fichier == NULL)
     {
         perror("Erreur lors de l'ouverture du fichier");
@@ -1391,3 +1389,4 @@ int main()
 
     return 0;
 }
+
