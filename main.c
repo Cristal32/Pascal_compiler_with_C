@@ -436,7 +436,7 @@ void Test_Symbole(CODES cl, CODES_ERR COD_ERR)
     if (SYM.CODE == cl) { Sym_Suiv(); }
     else {Erreur(COD_ERR); }
 }
-// ================================== BLOCK ==================================
+// ================================== BLOCK() ==================================
 void BLOCK()
 {
     label_declaration_part(); //in the block, we usually start with label declarations (go to)
@@ -447,7 +447,7 @@ void BLOCK()
     // statement_part();
 }
 
-// ================================== label declaration part ==================================
+// ================================== label_declaration_part() ==================================
 void label_declaration_part() {
     if (SYM.CODE == LABEL_TOKEN) {
         Sym_Suiv(); // Consommer le token "label"
@@ -488,7 +488,7 @@ void label() {
     }
 }
 
-//===================== constant_definition_part ==========================
+// ================================== constant_definition_part() ==================================
 
 // Implémentation de la production <constant definition part>
 void constant_definition_part() {
@@ -524,44 +524,40 @@ void constant_definition() {
 
         if (SYM.CODE == EG_TOKEN) {
             Sym_Suiv(); // Consommer le token "="
+
             // Vérifier si la constante est une valeur directe
-            if (SYM.CODE == NUM_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == CHAR_TOKEN) {
-                Sym_Suiv(); // Consommer la constante directe
-            } else {
-                // Si ce n'est pas une constante directe, analyser la constante associée
-                constant(); // Analyser la constante associée
-            }
-        } else {
-            // Gérer une erreur si le token suivant n'est pas "="
+            if (SYM.CODE == NUM_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == CHAR_TOKEN) { Sym_Suiv(); } // Consommer la constante directe
+
+            // Si ce n'est pas une constante directe, analyser la constante associée
+            else { constant(); } // Analyser la constante associée
+        } else { // Gérer une erreur si le token suivant n'est pas "="
             printf("Erreur : '=' attendu dans la définition de constante\n");
             Erreur(EG_ERR);
         }
-    } else {
-        // Gérer une erreur si le token n'est pas un identifiant
+    } else { // Gérer une erreur si le token n'est pas un identifiant
         printf("Erreur : Identifiant attendu dans la définition de constante\n");
         Erreur(TP_ERR);
     }
 }
 
-//===================== constant ==========================
-
+// ================================== constant() ==================================
 // Fonction pour analyser une constante
 void constant() {
-    if (SYM.CODE == NUM_TOKEN || SYM.CODE == ID_TOKEN || SYM.CODE == STRING_TOKEN) {
-        Sym_Suiv(); // Consommer la constante valide (numérique, identifiant ou chaîne de caractères)
-    } else if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN) {
-        Sym_Suiv(); // Consommer le token de signe
-        if (SYM.CODE == ID_TOKEN) {
-            Sym_Suiv(); // Consommer le token identifiant
-        } else {
-            // Gérer une erreur si le token suivant n'est pas un identifiant
-            printf("Erreur : Identifiant attendu après le signe dans la constante\n");
-        Erreur(TP_ERR);
-        }
-    } else {
-        // Gérer une erreur si le token n'est pas une constante valide
-        printf("Erreur : Constante invalide dans la définition de constante\n");
-        Erreur(CONST_ERR);
+    if (SYM.CODE == NUM_TOKEN || SYM.CODE == ID_TOKEN || SYM.CODE == STRING_TOKEN) { Sym_Suiv(); } // Consommer la constante valide (numérique, identifiant ou chaîne de caractères)
+    else {
+            if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN) {
+                Sym_Suiv(); // Consommer le token de signe
+                if (SYM.CODE == ID_TOKEN) { Sym_Suiv(); } // Consommer le token identifiant
+                else {
+                    // Gerer une erreur si le token suivant n'est pas un identifiant
+                    printf("Erreur : Identifiant attendu après le signe dans la constante\n");
+                    Erreur(TP_ERR);
+                }
+            } else {
+                // Gerer une erreur si le token n'est pas une constante valide
+                printf("Erreur : Constante invalide dans la définition de constante\n");
+                Erreur(CONST_ERR);
+            }
     }
 }
 
@@ -595,36 +591,31 @@ void PROGRAM()
     }
 }
 
-//===================== unsigned_number ==========================
+//===================== unsigned_number() ==========================
 // Implémentation de la production <unsigned number>
 void unsigned_number() {
-    if (SYM.CODE == NUM_TOKEN) {
-        // Si le token actuel est un nombre, c'est un nombre non signé
-        Sym_Suiv();
-    } else if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN || SYM.CODE == ID_TOKEN || SYM.CODE == QUOTE_TOKEN) {
-        // Sinon, c'est une constante identifiée, un signe ou une chaîne de caractères
-        constant_identifier();
-    } else {
-        // Gérer une erreur si le token n'est pas un nombre, un identifiant ou un signe
-        printf("Erreur : Nombre, identifiant, signe ou chaîne de caractères attendu\n");
-        Erreur(NUM_ERR);
+    if (SYM.CODE == NUM_TOKEN) { Sym_Suiv(); } // Si le token actuel est un nombre, c'est un nombre non signé
+
+    // Sinon, c'est une constante identifiée, un signe ou une chaîne de caractères
+    else {
+            if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN || SYM.CODE == ID_TOKEN || SYM.CODE == QUOTE_TOKEN) { constant_identifier(); }
+            else { // Gérer une erreur si le token n'est pas un nombre, un identifiant ou un signe
+                printf("Erreur : Nombre, identifiant, signe ou chaîne de caractères attendu\n");
+                Erreur(NUM_ERR);
+            }
     }
 }
-//===================== unsigned_integer ==========================
-
+//===================== unsigned_integer() ==========================
 // Implémentation de la production <unsigned integer>
 void unsigned_integer() {
-    if (SYM.CODE == NUM_TOKEN) {
-        // Si le token actuel est un nombre, c'est un entier non signé
-        Sym_Suiv();
-    } else {
-        // Gérer une erreur si le token n'est pas un nombre
+    if (SYM.CODE == NUM_TOKEN) { Sym_Suiv(); } // Si le token actuel est un nombre, c'est un entier non signé
+    else { // Gérer une erreur si le token n'est pas un nombre
         printf("Erreur : Nombre attendu dans l'entier non signé\n");
         Erreur(NUM_ERR);
     }
 }
-//===================== unsigned_real ==========================
 
+//===================== unsigned_real() ==========================
 // Implémentation de la production <unsigned real>
 void unsigned_real() {
     unsigned_integer(); // Un nombre non signé est requis avant le point décimal
@@ -639,8 +630,8 @@ void unsigned_real() {
         }
     }
 }
-//===================== scale_factor ==========================
 
+//===================== scale_factor() ==========================
 // Implémentation de la production <scale factor>
 void scale_factor() {
     if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN || SYM.CODE == NUM_TOKEN) {
@@ -653,8 +644,8 @@ void scale_factor() {
         Erreur(NUM_ERR);
     }
 }
-//===================== sign ==========================
 
+//===================== sign() ==========================
 // Implémentation de la production <sign>
 void sign() {
     if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN) {
@@ -665,36 +656,32 @@ void sign() {
         Erreur(NUM_ERR);
     }
 }
-//===================== constant_identifier ==========================
+
+//===================== constant_identifier() ==========================
 // Implémentation de la production <constant identifier>
 void constant_identifier() {
-    if (SYM.CODE == ID_TOKEN || SYM.CODE == QUOTE_TOKEN) {
-        // Si le token actuel est un identifiant ou une chaîne de caractères, c'est une constante identifiée
-        Sym_Suiv();
-    } else {
-        // Gérer une erreur si le token n'est pas un identifiant ou une chaîne de caractères
+    if (SYM.CODE == ID_TOKEN || SYM.CODE == QUOTE_TOKEN) { Sym_Suiv(); } // Si le token actuel est un identifiant ou une chaîne de caractères, c'est une constante identifiée
+    else { // Gérer une erreur si le token n'est pas un identifiant ou une chaîne de caractères
         printf("Erreur : Identifiant ou chaîne de caractères attendu dans la constante identifiée\n");
         Erreur(ID_ERR);
     }
 }
-//===================== string ==========================
+
+//===================== string() ==========================
 // Implémentation de la production <string>
 void string() {
     if (SYM.CODE == QUOTE_TOKEN) {
         // Si le token actuel est une quote, cela signifie que nous commençons une chaîne de caractères
         Sym_Suiv(); // Consommer la quote
 
-        while (SYM.CODE != QUOTE_TOKEN && SYM.CODE != FIN_TOKEN) {
-            // Tant que nous n'avons pas rencontré une autre quote ou la fin du fichier, nous consommons les caractères de la chaîne de caractères
-            Sym_Suiv();
-        }
+        // Tant que nous n'avons pas rencontré une autre quote ou la fin du fichier, nous consommons les caractères de la chaîne de caractères
+        while (SYM.CODE != QUOTE_TOKEN && SYM.CODE != FIN_TOKEN) { Sym_Suiv(); }
 
-        if (SYM.CODE == QUOTE_TOKEN) {
-            Sym_Suiv(); // Consommer la quote fermante
-        } else {
+        if (SYM.CODE == QUOTE_TOKEN) { Sym_Suiv(); } // Consommer la quote fermante
+        else {
             // Gérer une erreur si nous n'avons pas trouvé la quote fermante
             printf("Erreur : Quote fermante attendue pour la chaîne de caractères\n");
-        Erreur(QUOTE_ERR);
+            Erreur(QUOTE_ERR);
         }
     } else {
         // Gérer une erreur si le token actuel n'est pas une quote
@@ -703,7 +690,7 @@ void string() {
     }
 }
 
-//===================== type_definition_part ==========================
+//===================== type_definition_part() ==========================
 // Implémentation de la production <type definition part>
 void type_definition_part() {
     if (SYM.CODE == TYPE_TOKEN) {
@@ -733,7 +720,7 @@ void type_definition_part() {
 }
 
 
-//===================== type_definition ==========================
+//===================== type_definition() ==========================
 // Implémentation de la production <type definition>
 void type_definition() {
     if (SYM.CODE == ID_TOKEN) {
@@ -743,7 +730,7 @@ void type_definition() {
         // Vérifier le signe "="
         if (SYM.CODE != EG_TOKEN) {
             printf("Erreur : Signe '=' attendu dans la définition de type\n");
-        Erreur(EG_ERR);
+            Erreur(EG_ERR);
         }
 
         Sym_Suiv(); // Consommer le signe "="
@@ -756,12 +743,12 @@ void type_definition() {
         Erreur(ID_ERR);
     }
 }
-//===================== type ==========================
-void type() {
-    if (SYM.CODE == INTEGER_TOKEN || SYM.CODE == FLOAT_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == BOOL_TOKEN) {
-        Sym_Suiv(); // Avance au prochain symbole après le type prédéfini
 
-    }else if (SYM.CODE == PO_TOKEN) {
+//===================== type() ==========================
+void type() {
+    // Avance au prochain symbole après le type prédéfini
+    if (SYM.CODE == INTEGER_TOKEN || SYM.CODE == FLOAT_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == BOOL_TOKEN) { Sym_Suiv(); }
+    else if (SYM.CODE == PO_TOKEN) {
         // Consommer "("
         Sym_Suiv();
 
@@ -769,68 +756,48 @@ void type() {
         scalar_type();
 
         // Vérifier si le prochain jeton est ")"
-        if (SYM.CODE == PF_TOKEN) {
-            // Consommer ")"
-            Sym_Suiv();
-        } else {
+        if (SYM.CODE == PF_TOKEN) { Sym_Suiv(); } // Consommer ")"
+        else {
             // Si le prochain jeton n'est pas ")", signaler une erreur
             printf("Erreur : Symbole ')' attendu\n");
             Erreur(PF_ERR);
         }
     }
-    else if (SYM.CODE == CONST_TOKEN) {
-        // Appeler la fonction de type sous-gamme
-        subrange_type();
-    } else if (SYM.CODE == ID_TOKEN) {
+    else if (SYM.CODE == CONST_TOKEN) { subrange_type(); } // Appeler la fonction de type sous-gamme
+    else if (SYM.CODE == ID_TOKEN) {
+
         // Appeler la fonction de type identifiant
         Sym_Suiv();
+
         // Vérifier si le jeton suivant est un point-virgule (PT_TOKEN)
-        if (SYM.CODE == PT_TOKEN) {
-            Sym_Suiv(); // Consommer le PT_TOKEN
-        } else {
-            // Si le jeton suivant n'est pas un point-virgule, signaler une erreur
+        if (SYM.CODE == PT_TOKEN) { Sym_Suiv(); } // Consommer le PT_TOKEN
+        else { // Si le jeton suivant n'est pas un point-virgule, signaler une erreur
             printf("Erreur : Symbole ';' attendu après l'identifiant\n");
             Erreur(PT_ERR);
         }
-    } else if (SYM.CODE == ARRAY_TOKEN) {
-        // Appeler la fonction de type tableau
-        array_type();
-    } else if (SYM.CODE == RECORD_TOKEN) {
-        // Appeler la fonction de type enregistrement
-        record_type();
-    } else if (SYM.CODE == SET_TOKEN) {
-        // Appeler la fonction de type ensemble
-        set_type();
-    } else if (SYM.CODE == FILE_TOKEN) {
-        // Appeler la fonction de type fichier
-        file_type();
-    } else {
-        // Si le prochain jeton ne correspond à aucun type, signaler une erreur
+    } else if (SYM.CODE == ARRAY_TOKEN) { array_type(); } // Appeler la fonction de type tableau
+    else if (SYM.CODE == RECORD_TOKEN) { record_type(); } // Appeler la fonction de type enregistrement
+    else if (SYM.CODE == SET_TOKEN) { set_type(); } // Appeler la fonction de type ensemble
+    else if (SYM.CODE == FILE_TOKEN) { file_type(); } // Appeler la fonction de type fichier
+    else { // Si le prochain jeton ne correspond à aucun type, signaler une erreur
         printf("Erreur : Type attendu\n");
         Erreur(TYPE_ERR);
     }
 }
 
-
-//===================== simple_type ==========================
-
+//===================== simple_type() ==========================
 void simple_type() {
     // Vérifier si le type est un type scalaire, un type de plage ou un identifiant de type
-    if (SYM.CODE == PO_TOKEN) {
-        scalar_type();
-    } else if (SYM.CODE == NUM_TOKEN) {
-        subrange_type();
-    } else if (SYM.CODE == ID_TOKEN) {
-        type_identifier();
-    }
-    else {
-        // Si aucun des cas ci-dessus n'est vrai, signaler une erreur
+    if (SYM.CODE == PO_TOKEN) { scalar_type(); }
+    else if (SYM.CODE == NUM_TOKEN) { subrange_type(); }
+    else if (SYM.CODE == ID_TOKEN) { type_identifier(); }
+    else { // Si aucun des cas ci-dessus n'est vrai, signaler une erreur
         printf("Erreur : Type scalaire, de plage ou identifiant de type attendu\n");
         Erreur(TYPE_ERR);
     }
 }
-//===================== field_identifier ==========================
 
+//===================== field_identifier() ==========================
 void field_identifier() {
     // Vérifier si le jeton actuel est un identifiant
     if (SYM.CODE == ID_TOKEN) {
@@ -845,7 +812,7 @@ void field_identifier() {
     }
 }
 
-//===================== scalar_type ==========================
+//===================== scalar_type() ==========================
 void scalar_type() {
     // Appeler la fonction de l'identifiant
     variable_identifier();
@@ -859,14 +826,12 @@ void scalar_type() {
         variable_identifier();
     }
 }
-//===================== variable_identifier ==========================
 
+//===================== variable_identifier() ==========================
 void variable_identifier() {
     // Vérifier si le jeton actuel est un identifiant
-    if (SYM.CODE == ID_TOKEN) {
-        // Consommer l'identifiant en passant au jeton suivant
-        Sym_Suiv();
-    } else {
+    if (SYM.CODE == ID_TOKEN) { Sym_Suiv(); } // Consommer l'identifiant en passant au jeton suivant
+    else {
         Erreur(ID_ERR); // Utilisation de la fonction Erreur pour signaler l'erreur
 
         // Si le jeton actuel n'est pas un identifiant, signaler une erreur
@@ -874,7 +839,8 @@ void variable_identifier() {
         Erreur(ID_ERR);
     }
 }
-//===================== subrange_type ==========================
+
+//===================== subrange_type() ==========================
 void subrange_type() {
     // Appeler la fonction de constante
     constant();
@@ -886,42 +852,37 @@ void subrange_type() {
 
         // Appeler la fonction de constante
         constant();
-    } else {
-        // Si le prochain jeton n'est pas "..", signaler une erreur
+    } else { // Si le prochain jeton n'est pas "..", signaler une erreur
         printf("Erreur : Symbole '..' attendu\n");
         Erreur(DOTDOT_ERR);
     }
 }
-//===================== type_identifier ==========================
+
+//===================== type_identifier() ==========================
 void type_identifier() {
     // Vérifier si le prochain jeton est un identifiant
-    if (SYM.CODE == ID_TOKEN) {
-        // Consommer l'identifiant
-        Sym_Suiv();
-    } else {
-        // Si le prochain jeton n'est pas un identifiant, signaler une erreur
+    if (SYM.CODE == ID_TOKEN) { Sym_Suiv(); } // Consommer l'identifiant
+    else { // Si le prochain jeton n'est pas un identifiant, signaler une erreur
         printf("Erreur : Identifiant de type attendu\n");
         Erreur(ID_ERR);
     }
 }
-//===================== structured_type ==========================
+
+//===================== structured_type() ==========================
 void structured_type() {
     // Vérifier si le type est un type tableau, un type enregistrement, un ensemble ou un fichier
-    if (SYM.CODE == ARRAY_TOKEN) {
-        array_type();
-    } else if (SYM.CODE == RECORD_TOKEN) {
-        record_type();
-    } else if (SYM.CODE == SETOF_TOKEN) {
-        set_type();
-    } else if (SYM.CODE == FILEOF_TOKEN) {
-        file_type();
-    } else {
+    if (SYM.CODE == ARRAY_TOKEN) { array_type(); }
+    else if (SYM.CODE == RECORD_TOKEN) { record_type(); }
+    else if (SYM.CODE == SETOF_TOKEN) { set_type(); }
+    else if (SYM.CODE == FILEOF_TOKEN) { file_type(); }
+    else {
         // Si aucun des cas ci-dessus n'est vrai, signaler une erreur
         printf("Erreur : Type structuré attendu\n");
         Erreur(TYPE_ERR);
     }
 }
-//===================== array_type ==========================
+
+//===================== array_type() ==========================
 void array_type() {
     // Vérifier si le prochain jeton est "array"
     if (SYM.CODE == ARRAY_TOKEN) {
@@ -946,13 +907,11 @@ void array_type() {
             }
 
             // Vérifier si le prochain jeton est "]"
-            if (SYM.CODE == CROCHETF_TOKEN) {
-                // Consommer "]"
-                Sym_Suiv();
-            } else {
+            if (SYM.CODE == CROCHETF_TOKEN) { Sym_Suiv(); } // Consommer "]"
+            else {
                 // Si le prochain jeton n'est pas "]", signaler une erreur
                 printf("Erreur : Symbole ']' attendu\n");
-        Erreur(CROCHETF_ERR);
+                Erreur(CROCHETF_ERR);
             }
 
             // Vérifier si le prochain jeton est "of"
@@ -965,12 +924,12 @@ void array_type() {
             } else {
                 // Si le prochain jeton n'est pas "of", signaler une erreur
                 printf("Erreur : Mot-clé 'of' attendu\n");
-        Erreur(OF_ERR);
+                Erreur(OF_ERR);
             }
         } else {
             // Si le prochain jeton n'est pas "[", signaler une erreur
             printf("Erreur : Symbole '[' attendu\n");
-        Erreur(CROCHETO_ERR);
+            Erreur(CROCHETO_ERR);
         }
     } else {
         // Si le prochain jeton n'est pas "array", signaler une erreur
@@ -978,14 +937,13 @@ void array_type() {
         Erreur(ARRAY_ERR);
     }
 }
-//===================== index_type ==========================
-void index_type() {
-    // Appeler la fonction de type simple
+
+//===================== index_type() ==========================
+void index_type() {  // Appeler la fonction de type simple
     simple_type();
 }
 //===================== component_type ==========================
-void component_type() {
-    // Appeler la fonction de type
+void component_type() { // Appeler la fonction de type
     type();
 }
 //===================== record_type ==========================
@@ -999,13 +957,11 @@ void record_type() {
         field_list();
 
         // Vérifier si le prochain jeton est "end"
-        if (SYM.CODE == END_TOKEN) {
-            // Consommer "end"
-            Sym_Suiv();
-        } else {
+        if (SYM.CODE == END_TOKEN) { Sym_Suiv(); } // Consommer "end"
+        else {
             // Si le prochain jeton n'est pas "end", signaler une erreur
             printf("Erreur : Mot-clé 'end' attendu\n");
-        Erreur(END_ERR);
+            Erreur(END_ERR);
         }
     } else {
         // Si le prochain jeton n'est pas "record", signaler une erreur
@@ -1013,7 +969,8 @@ void record_type() {
         Erreur(RECORD_ERR);
     }
 }
-//===================== field_list ==========================
+
+//===================== field_list() ==========================
 void field_list() {
     // Appeler la fonction de partie fixe
     fixed_part();
@@ -1027,18 +984,13 @@ void field_list() {
         if (SYM.CODE == CASE_TOKEN || SYM.CODE == ID_TOKEN) {
             // Appeler la partie suivante (peut être une partie fixe ou une partie variante)
             Sym_Suiv();
-            if (SYM.CODE == CASE_TOKEN) {
-                // Appeler la fonction de partie variante
-                variant_part();
-            } else {
-                // Si ce n'est pas la partie variante, c'est une autre partie fixe
-                field_list();
-            }
+            if (SYM.CODE == CASE_TOKEN) { variant_part(); } // Appeler la fonction de partie variante
+            else { field_list(); } // Si ce n'est pas la partie variante, c'est une autre partie fixe
         }
     }
 }
 
-//===================== fixed_part ==========================
+//===================== fixed_part() ==========================
 void fixed_part() {
     // Appeler la fonction de section d'enregistrement
     record_section();
@@ -1053,7 +1005,7 @@ void fixed_part() {
     }
 }
 
-//===================== record_section ==========================
+//===================== record_section() ==========================
 void record_section() {
     // Appeler la fonction d'identifiant de champ
     field_identifier();
@@ -1081,7 +1033,7 @@ void record_section() {
     }
 }
 
-//===================== variant_part ==========================
+//===================== variant_part() ==========================
 void variant_part() {
     // Vérifier si la partie variante est vide
     if (SYM.CODE == CASE_TOKEN) {
@@ -1122,7 +1074,7 @@ void variant_part() {
     }
 }
 
-//===================== tag_field ==========================
+//===================== tag_field() ==========================
 void tag_field() {
     // Vérifier si le prochain jeton est un identifiant
     if (SYM.CODE == ID_TOKEN) {
@@ -1165,10 +1117,8 @@ void variant() {
                 field_list();
 
                 // Vérifier si le prochain jeton est ")"
-                if (SYM.CODE == PF_TOKEN) {
-                    // Consommer ")"
-                    Sym_Suiv();
-                } else {
+                if (SYM.CODE == PF_TOKEN) { Sym_Suiv(); } // Consommer ")"
+                else {
                     // Si le prochain jeton n'est pas ")", signaler une erreur
                     printf("Erreur : Symbole ')' attendu\n");
                     exit(1);
@@ -1189,13 +1139,11 @@ void variant() {
         exit(1);
     }
 }
-//===================== case_label_list ==========================
+
+//===================== case_label_list() ==========================
 void case_label_list() {
     // Vérifier si la liste d'étiquettes de cas est vide
-    if (SYM.CODE != CASE_TOKEN) {
-        // Rien à faire, donc retourner
-        return;
-    }
+    if (SYM.CODE != CASE_TOKEN) { return;}
 
     // Appeler la fonction d'étiquette de cas
     case_label();
@@ -1209,12 +1157,13 @@ void case_label_list() {
         case_label();
     }
 }
-//===================== case_label ==========================
-void case_label() {
-    // Appeler la fonction de constante
+
+//===================== case_label() ==========================
+void case_label() { // Appeler la fonction de constante
     constant();
 }
-//===================== set_type ==========================
+
+//===================== set_type() ==========================
 void set_type() {
     // Vérifier si le prochain jeton est "set"
     if (SYM.CODE == SETOF_TOKEN) {
@@ -1239,18 +1188,16 @@ void set_type() {
         exit(1);
     }
 }
-//===================== base_type ==========================
+//===================== base_type() ==========================
 void base_type() {
     // Appeler la fonction de type
     simple_type();
 }
-//===================== variable_declaration_part ==========================
+
+//===================== variable_declaration_part() ==========================
 void variable_declaration_part() {
     // Vérifier si la partie de déclaration de variable est vide
-    if (SYM.CODE != VAR_TOKEN) {
-        // Rien à faire, donc retourner
-        return;
-    }
+    if (SYM.CODE != VAR_TOKEN) { return; } // Rien à faire, donc retourner
 
     // Consommer "var"
     Sym_Suiv();
@@ -1267,8 +1214,8 @@ void variable_declaration_part() {
         variable_declaration();
     }
 }
-//===================== variable_declaration ==========================
-// Fonction pour la déclaration de variable
+
+//===================== variable_declaration() ==========================
 void variable_declaration() {
     // Appeler la fonction de l'identifiant de variable
     variable_identifier();
@@ -1295,7 +1242,8 @@ void variable_declaration() {
         exit(1);
     }
 }
-//===================== file_type ==========================
+
+//===================== file_type() ==========================
 // Fonction pour le type de fichier
 void file_type() {
     // Vérifier si le prochain jeton est "file"
@@ -1321,19 +1269,19 @@ void file_type() {
         exit(1);
     }
 }
+
 //===================== pointer_type ==========================
 // Fonction pour le type pointeur
 void pointer_type() {
     // Vérifier si le type est un identifiant
-    if (SYM.CODE == ID_TOKEN) {
-        // Consommer l'identifiant
-        Sym_Suiv();
-    } else {
+    if (SYM.CODE == ID_TOKEN) { Sym_Suiv(); }// Consommer l'identifiant
+    else {
         // Si le type n'est pas un identifiant, signaler une erreur
         printf("Erreur : Identifiant de type attendu\n");
         exit(1);
     }
 }
+
 //===================== main ==========================
 
 /*
@@ -1373,10 +1321,7 @@ int main()
 
     printf("Program execution completed.\n");
 
-    if (SYM.CODE == FIN_TOKEN)
-    {
-        printf("BRAVO: le programme est correcte on arrive a la fin !!!\n");
-    }
+    if (SYM.CODE == FIN_TOKEN) { printf("BRAVO: le programme est correcte on arrive a la fin !!!\n"); }
     else
     {
         printf("PAS BRAVO: fin de programme errone!!!!\n");
