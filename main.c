@@ -1334,6 +1334,80 @@ void pointer_type() {
         exit(1);
     }
 }
+//=====================Function_procedure ==========================
+// Fonctions pour les fonctions et les procedures
+void procedure_and_function_declaration_part() {
+    while (SYM.CODE == PROCEDURE_TOKEN || SYM.CODE == FUNCTION_TOKEN) {
+        procedure_or_function_declaration();
+        Test_Symbole(PV_TOKEN, PV_ERR); // Point-virgule entre les déclarations
+    }
+}
+
+void procedure_or_function_declaration() {
+    if (SYM.CODE == PROCEDURE_TOKEN) {
+        procedure_declaration();
+    } else if (SYM.CODE == FUNCTION_TOKEN) {
+        function_declaration();
+    }
+}
+
+void procedure_declaration() {
+    procedure_heading();
+    BLOCK();
+}
+
+void procedure_heading() {
+    Test_Symbole(PROCEDURE_TOKEN, PROCEDURE_ERR);
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    if (SYM.CODE == PV_TOKEN) {
+        Sym_Suiv(); // Consommer le point-virgule
+    } else if (SYM.CODE == LEFT_PAREN_TOKEN) {
+        Sym_Suiv(); // Consommer la parenthèse gauche
+        formal_parameter_section();
+        while (SYM.CODE == SEMICOLON_TOKEN) {
+            Sym_Suiv(); // Consommer le point-virgule
+            formal_parameter_section();
+        }
+        Test_Symbole(RIGHT_PAREN_TOKEN, RIGHT_PAREN_ERR);
+    }
+}
+
+void formal_parameter_section() {
+    if (SYM.CODE == VAR_TOKEN) {
+        Sym_Suiv(); // Consommer VAR
+    }
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    while (SYM.CODE == COMMA_TOKEN) {
+        Sym_Suiv(); // Consommer la virgule
+        Test_Symbole(ID_TOKEN, ID_ERR);
+    }
+    Test_Symbole(COLON_TOKEN, COLON_ERR);
+    Test_Symbole(TYPE_IDENTIFIER_TOKEN, TYPE_IDENTIFIER_ERR);
+}
+
+void function_declaration() {
+    function_heading();
+    BLOCK();
+}
+
+void function_heading() {
+    Test_Symbole(FUNCTION_TOKEN, FUNCTION_ERR);
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    if (SYM.CODE == PV_TOKEN) {
+        Sym_Suiv(); // Consommer le point-virgule
+    } else if (SYM.CODE == LEFT_PAREN_TOKEN) {
+        Sym_Suiv(); // Consommer la parenthèse gauche
+        formal_parameter_section();
+        while (SYM.CODE == SEMICOLON_TOKEN) {
+            Sym_Suiv(); // Consommer le point-virgule
+            formal_parameter_section();
+        }
+        Test_Symbole(RIGHT_PAREN_TOKEN, RIGHT_PAREN_ERR);
+    }
+    Test_Symbole(COLON_TOKEN, COLON_ERR);
+    Test_Symbole(TYPE_IDENTIFIER_TOKEN, TYPE_IDENTIFIER_ERR);
+    Test_Symbole(PV_TOKEN, PV_ERR); // Point-virgule
+}
 //===================== main ==========================
 
 /*
