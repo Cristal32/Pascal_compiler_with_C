@@ -3,21 +3,27 @@
 #include <string.h>
 #include <ctype.h>
 
+// ================================== CODES : tokens ==================================
+/* enumeration CODES, with a set of named constants each assigned an integer value.
+The constants represent different types of tokens that might be encountered in a Pascal program during lexical analysis
+(the process of converting a sequence of characters into a sequence of tokens)
+*/
 typedef enum {
-    ID_TOKEN, PROGRAM_TOKEN,
-    CONST_TOKEN, VAR_TOKEN,
-    BEGIN_TOKEN, END_TOKEN,
-    IF_TOKEN, THEN_TOKEN,
-    WHILE_TOKEN, DO_TOKEN,
-    READ_TOKEN, WRITE_TOKEN,
-    PV_TOKEN, PT_TOKEN,
-    PLUS_TOKEN, MOINS_TOKEN,
-    MULT_TOKEN, DIV_TOKEN,
-    VIR_TOKEN, AFF_TOKEN,
-    INF_TOKEN, INFEG_TOKEN,
-    SUP_TOKEN, SUPEG_TOKEN,
-    DIFF_TOKEN, PO_TOKEN,
-    PF_TOKEN, FIN_TOKEN,
+    ID_TOKEN, // identifiant: variables
+    PROGRAM_TOKEN, // PROGRAM
+    CONST_TOKEN, VAR_TOKEN, // CONST & VAR
+    BEGIN_TOKEN, END_TOKEN, // BEGIN & END
+    IF_TOKEN, THEN_TOKEN, // IF & THEN
+    WHILE_TOKEN, DO_TOKEN, // WHILE & DO
+    READ_TOKEN, WRITE_TOKEN, // READ() & WRITE()
+    PV_TOKEN, PT_TOKEN, // Point-virgule(;) & Point(.)
+    PLUS_TOKEN, MOINS_TOKEN, // Plus(+) & Minus(-)
+    MULT_TOKEN, DIV_TOKEN, // Multiply(*) & Divide(/)
+    VIR_TOKEN, AFF_TOKEN, // Virgule(,) & Affectation(:=)
+    INF_TOKEN, INFEG_TOKEN, // Inferieur(<) & Inferieur ou egal(<=)
+    SUP_TOKEN, SUPEG_TOKEN, // Superieur(>) & Superieur ou egal(>=)
+    DIFF_TOKEN, PO_TOKEN, // Not equal(<>) & Parenthese Ouvrante '('
+    PF_TOKEN, FIN_TOKEN, // Parenthese Fermante ')'
     STRING_TOKEN,FLOAT_TOKEN,CHAR_TOKEN,BOOL_TOKEN,QUOTE_TOKEN,TP_TOKEN,COMMENTO_TOKEN,CBO_TOKEN,CBF_TOKEN,AND_TOKEN,OR_TOKEN,COMMENTF_TOKEN,
     TYPE_TOKEN,NOT_TOKEN,CROCHETO_TOKEN,CROCHETF_TOKEN,
     GOTO_TOKEN,ELSE_TOKEN,REPEAT_TOKEN,UNTIL_TOKEN,FOR_TOKEN,TO_TOKEN,DOWNTO_TOKEN,WITH_TOKEN,
@@ -25,28 +31,12 @@ typedef enum {
     NUM_TOKEN, ERREUR_TOKEN, EOF_TOKEN,EG_TOKEN,DOTDOT_TOKEN,E_TOKEN,SET_TOKEN,FILE_TOKEN,INTEGER_TOKEN,
 } CODES;
 
-
+// ================================== CODES_ERR : Errors associated to tokens ==================================
 // erreur types
 typedef enum
 {
-
-    PROGRAM_ERR,
-    ID_ERR,
-    CONST_ERR,
-    VAR_ERR,
-    BEGIN_ERR,
-    END_ERR,
-    IF_ERR,
-    THEN_ERR,
-    WHILE_ERR,
-    DO_ERR,
-    READ_ERR,
-    WRITE_ERR,
-    PV_ERR,
-    PT_ERR,
-    PLUS_ERR,
-    MOINS_ERR,
-    MULT_ERR,
+    PROGRAM_ERR, ID_ERR, CONST_ERR, VAR_ERR, BEGIN_ERR,
+    END_ERR, IF_ERR, THEN_ERR, WHILE_ERR, DO_ERR, READ_ERR, WRITE_ERR, PV_ERR, PT_ERR, PLUS_ERR, MOINS_ERR, MULT_ERR,
     DIV_ERR,
     VIR_ERR,
     AFF_ERR,
@@ -105,20 +95,16 @@ typedef enum
     INTEGER_ERR,
 } CODES_ERR;
 
-typedef struct
-{
+// ================================== Current_sym : current symbol ==================================
+// structure of the token: token = (code, nom). ex: token de var = (VAR_TOKEN, "var")
+typedef struct{
     CODES CODE;
     char NOM[20];
 } Current_sym;
 
-Current_sym SYM;
-int ligne_actuelle = 1;
+Current_sym SYM; // SYM : current symbol
 
-FILE *fichier;
-
-char Car_Cour; // caract�re courant
-
-// functions declaration
+// ================================== functions declaration ==================================
 void VARS();
 void INSTS();
 void INST();
@@ -147,7 +133,6 @@ void CONSTS();
 void Sym_Suiv();
 void lire_mot();
 void lire_nombre();
-
 void label_declaration_part();
 void const_definition_part();
 void type_definition_part();
@@ -190,170 +175,76 @@ void case_label_list();
 void case_label();
 void set_type();
 
-
 // functions definition
+int ligne_actuelle = 1;
 
-//===================== lire_mot ==========================
+FILE *fichier;
+
+char Car_Cour; // caractere courant
+
+// ================================== lire_mot() ==================================
+/* It reads a word from input and checks if it matches any of the predefined keywords in Pascal. Let's break down what it does:
+*/
 void lire_mot()
 {
-    char mot[20];
-    int indice = 0;
+    char mot[20]; // Initialize empty word of max size = 20
+    int indice = 0; // Initialize index (that we will use to go through 'mot') to 0
 
-    // Lecture du premier caractere (lettre)
-    mot[indice++] = Car_Cour;
-    Lire_Car();
+    // Lecture du premier caractere (la 1ere lettre)
+    mot[indice++] = Car_Cour; // mot(0) = Car_Cour then indice +=1
+    Lire_Car(); // Read the next character
 
-    // Lecture des caracteres suivants (lettres ou chiffres)
+    // Do the same for index >= 1, while the current character is a letter (isalpha()) or a number (isdigit())
     while (isalpha(Car_Cour) || isdigit(Car_Cour))
     {
         mot[indice++] = Car_Cour;
         Lire_Car();
     }
 
-    // Ajout du caract�re de fin de cha�ne
+    // Ajout du caractere de fin de chaine. mot = [..., ..., ..., '\0']
     mot[indice] = '\0';
 
-    // Verifier si le mot est un mot-cl�
-    if (stricmp(mot, "program") == 0) {
-        SYM.CODE = PROGRAM_TOKEN;
-    }
-     else if (stricmp(mot, "set") == 0)
-    {
-        SYM.CODE = SET_TOKEN;
-    }
-    else if (stricmp(mot, "const") == 0)
-    {
-        SYM.CODE = CONST_TOKEN;
-    }
-    else if (stricmp(mot, "var") == 0)
-    {
-        SYM.CODE = VAR_TOKEN;
-    }
-    else if (stricmp(mot, "begin") == 0)
-    {
-        SYM.CODE = BEGIN_TOKEN;
-    }
-    else if (stricmp(mot, "end") == 0)
-    {
-        SYM.CODE = END_TOKEN;
-    }
-    else if (stricmp(mot, "if") == 0)
-    {
-        SYM.CODE = IF_TOKEN;
-    }
-     else if (stricmp(mot, "file") == 0)
-    {
-        SYM.CODE = FILE_TOKEN;
-    }
-
-    else if (stricmp(mot, "then") == 0)
-    {
-        SYM.CODE = THEN_TOKEN;
-    }
-    else if (stricmp(mot, "while") == 0)
-    {
-        SYM.CODE = WHILE_TOKEN;
-    }
-    else if (stricmp(mot, "E") == 0)
-    {
-        SYM.CODE = E_TOKEN;
-    }
-    else if (stricmp(mot, "do") == 0)
-    {
-        SYM.CODE = DO_TOKEN;
-    }
-    else if (stricmp(mot, "read") == 0)
-    {
-        SYM.CODE = READ_TOKEN;
-    }
-    else if (stricmp(mot, "string") == 0)
-    {
-        SYM.CODE = STRING_TOKEN;
-    }
-    else if (stricmp(mot, "real") == 0)
-    {
-        SYM.CODE = FLOAT_TOKEN;
-    }
-    else if (stricmp(mot, "integer") == 0)
-    {
-        SYM.CODE = INTEGER_TOKEN;
-    }else if (stricmp(mot, "char") == 0)
-    {
-        SYM.CODE = CHAR_TOKEN;
-    }else if (stricmp(mot, "and") == 0)
-    {
-        SYM.CODE = AND_TOKEN;
-    }else if (stricmp(mot, "or") == 0)
-    {
-        SYM.CODE = OR_TOKEN;
-    }else if (stricmp(mot, "goto") == 0)
-    {
-        SYM.CODE = GOTO_TOKEN;
-    }else if (stricmp(mot, "else") == 0)
-    {
-        SYM.CODE = ELSE_TOKEN;
-    }else if (stricmp(mot, "repeat") == 0)
-    {
-        SYM.CODE = REPEAT_TOKEN;
-    }else if (stricmp(mot, "until") == 0)
-    {
-        SYM.CODE = UNTIL_TOKEN;
-    }else if (stricmp(mot, "for") == 0)
-    {
-        SYM.CODE = FOR_TOKEN;
-    }else if (stricmp(mot, "to") == 0)
-    {
-        SYM.CODE = TO_TOKEN;
-    }else if (stricmp(mot, "downto") == 0)
-    {
-        SYM.CODE = DOWNTO_TOKEN;
-    }else if (stricmp(mot, "with") == 0)
-    {
-        SYM.CODE = WITH_TOKEN;
-    }else if (stricmp(mot, "label") == 0)
-    {
-        SYM.CODE = LABEL_TOKEN;
-    }
-    else if (stricmp(mot, "array") == 0)
-    {
-        SYM.CODE = ARRAY_TOKEN;
-    }else if (stricmp(mot, "of") == 0)
-    {
-        SYM.CODE = OF_TOKEN;
-    }else if (stricmp(mot, "record") == 0)
-    {
-        SYM.CODE = RECORD_TOKEN;
-    }else if (stricmp(mot, "case") == 0)
-    {
-        SYM.CODE = CASE_TOKEN;
-    }else if (stricmp(mot, "setof") == 0)
-    {
-        SYM.CODE = SETOF_TOKEN;
-    }else if (stricmp(mot, "fileof") == 0)
-    {
-        SYM.CODE = FILEOF_TOKEN;
-    }else if (stricmp(mot, "procedure") == 0)
-    {
-        SYM.CODE = PROCEDURE_TOKEN;
-    }else if (stricmp(mot, "function") == 0)
-    {
-        SYM.CODE = FUNCTION_TOKEN;
-    }else if (stricmp(mot, "in") == 0)
-    {
-        SYM.CODE = IN_TOKEN;
-    }
-    else if (stricmp(mot, "div") == 0)
-    {
-        SYM.CODE = DIVV_TOKEN;
-    }else if (stricmp(mot, "mod") == 0)
-    {
-        SYM.CODE = MOD_TOKEN;
-    }
-    else
-    {
-        // If it's not a keyword, it's an identifier
-        SYM.CODE = ID_TOKEN;
-    }
+    // Verifier si le mot est un mot-cle
+    if (stricmp(mot, "program") == 0) { SYM.CODE = PROGRAM_TOKEN; } // if mot == 'program' ==> current symbol is program and its token is PROGRAM_TOKEN
+    else if (stricmp(mot, "set") == 0) { SYM.CODE = SET_TOKEN; }
+    else if (stricmp(mot, "const") == 0) { SYM.CODE = CONST_TOKEN; }
+    else if (stricmp(mot, "var") == 0) { SYM.CODE = VAR_TOKEN; }
+    else if (stricmp(mot, "begin") == 0) { SYM.CODE = BEGIN_TOKEN; }
+    else if (stricmp(mot, "end") == 0) { SYM.CODE = END_TOKEN; }
+    else if (stricmp(mot, "if") == 0) { SYM.CODE = IF_TOKEN; }
+    else if (stricmp(mot, "file") == 0) { SYM.CODE = FILE_TOKEN; }
+    else if (stricmp(mot, "then") == 0) { SYM.CODE = THEN_TOKEN; }
+    else if (stricmp(mot, "while") == 0) { SYM.CODE = WHILE_TOKEN; }
+    else if (stricmp(mot, "E") == 0) { SYM.CODE = E_TOKEN; }
+    else if (stricmp(mot, "do") == 0) { SYM.CODE = DO_TOKEN; }
+    else if (stricmp(mot, "read") == 0) { SYM.CODE = READ_TOKEN; }
+    else if (stricmp(mot, "string") == 0) { SYM.CODE = STRING_TOKEN; }
+    else if (stricmp(mot, "real") == 0) { SYM.CODE = FLOAT_TOKEN; }
+    else if (stricmp(mot, "integer") == 0) { SYM.CODE = INTEGER_TOKEN; }
+    else if (stricmp(mot, "char") == 0) { SYM.CODE = CHAR_TOKEN; }
+    else if (stricmp(mot, "and") == 0) { SYM.CODE = AND_TOKEN; }
+    else if (stricmp(mot, "or") == 0) { SYM.CODE = OR_TOKEN; }
+    else if (stricmp(mot, "goto") == 0) { SYM.CODE = GOTO_TOKEN; }
+    else if (stricmp(mot, "else") == 0) { SYM.CODE = ELSE_TOKEN; }
+    else if (stricmp(mot, "repeat") == 0) { SYM.CODE = REPEAT_TOKEN; }
+    else if (stricmp(mot, "until") == 0) { SYM.CODE = UNTIL_TOKEN; }
+    else if (stricmp(mot, "for") == 0) { SYM.CODE = FOR_TOKEN; }
+    else if (stricmp(mot, "to") == 0) { SYM.CODE = TO_TOKEN; }
+    else if (stricmp(mot, "downto") == 0) { SYM.CODE = DOWNTO_TOKEN; }
+    else if (stricmp(mot, "with") == 0) { SYM.CODE = WITH_TOKEN; }
+    else if (stricmp(mot, "label") == 0) { SYM.CODE = LABEL_TOKEN; }
+    else if (stricmp(mot, "array") == 0) { SYM.CODE = ARRAY_TOKEN; }
+    else if (stricmp(mot, "of") == 0) { SYM.CODE = OF_TOKEN; }
+    else if (stricmp(mot, "record") == 0) { SYM.CODE = RECORD_TOKEN; }
+    else if (stricmp(mot, "case") == 0) { SYM.CODE = CASE_TOKEN; }
+    else if (stricmp(mot, "setof") == 0) { SYM.CODE = SETOF_TOKEN; }
+    else if (stricmp(mot, "fileof") == 0) { SYM.CODE = FILEOF_TOKEN; }
+    else if (stricmp(mot, "procedure") == 0) { SYM.CODE = PROCEDURE_TOKEN; }
+    else if (stricmp(mot, "function") == 0) { SYM.CODE = FUNCTION_TOKEN; }
+    else if (stricmp(mot, "in") == 0) { SYM.CODE = IN_TOKEN; }
+    else if (stricmp(mot, "div") == 0) { SYM.CODE = DIVV_TOKEN; }
+    else if (stricmp(mot, "mod") == 0) { SYM.CODE = MOD_TOKEN; }
+    else { SYM.CODE = ID_TOKEN; } // if non of the special keywords, then it's an identifier
 
     // Stockage du mot dans le jeton
     strcpy(SYM.NOM, mot);
