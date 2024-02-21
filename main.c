@@ -1408,6 +1408,581 @@ void function_heading() {
     Test_Symbole(TYPE_IDENTIFIER_TOKEN, TYPE_IDENTIFIER_ERR);
     Test_Symbole(PV_TOKEN, PV_ERR); // Point-virgule
 }
+
+//===================== ==========================
+void variable() {
+    switch (SYM.CODE) {
+        case ID_TOKEN:
+            entire_variable();
+            break;
+        case CROCHETO_TOKEN:
+            indexed_variable();
+            break;
+        case MULT_TOKEN:
+            referenced_variable();
+            break;
+        default:
+            error("Variable attendue");
+    }
+}
+
+//===================== ==========================
+void entire_variable() {
+    Test_Symbole(ID_TOKEN, ID_ERR);
+}
+
+//===================== ==========================
+void variable_identifier() {
+    Test_Symbole(ID_TOKEN, ID_ERR);
+}
+
+//===================== ==========================
+void component_variable() {
+    switch (SYM.CODE) {
+        case CROCHETO_TOKEN:
+            indexed_variable();
+            break;
+        case DOT_TOKEN:
+            field_designator();
+            break;
+        default:
+            error("Composant de variable attendu");
+    }
+}
+
+//===================== ==========================
+void indexed_variable() {
+    Test_Symbole(CROCHETO_TOKEN, CROCHETO_ERR);
+    array_variable();
+    expression();
+    while (SYM.CODE == VIR_TOKEN) {
+        Test_Symbole(VIR_TOKEN, VIR_ERR);
+        expression();
+    }
+    Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
+}
+
+void array_variable() {
+    variable();
+}
+
+void field_designator() {
+    Test_Symbole(DOT_TOKEN, DOT_ERR);
+    record_variable();
+    field_identifier();
+}
+
+void record_variable() {
+    variable();
+}
+
+//===================== ==========================
+void field_identifier() {
+    Test_Symbole(ID_TOKEN, ID_ERR);
+}
+
+//===================== ==========================
+void file_buffer() {
+    file_variable();
+}
+
+//===================== ==========================
+void file_variable() {
+    variable();
+}
+
+//===================== ==========================
+void referenced_variable() {
+    Test_Symbole(STAR_TOKEN, STAR_ERR);
+    pointer_variable();
+}
+
+//===================== ==========================
+void pointer_variable() {
+    variable();
+}
+
+//===================== ==========================
+void expression() {
+    simple_expression();
+    if (SYM.CODE == EQ_TOKEN || SYM.CODE == NE_TOKEN || SYM.CODE == LT_TOKEN || SYM.CODE == LE_TOKEN || SYM.CODE == GT_TOKEN || SYM.CODE == GE_TOKEN || SYM.CODE == IN_TOKEN) {
+        relational_operator();
+        simple_expression();
+    }
+}
+
+//===================== ==========================
+void relational_operator() {
+    switch (SYM.CODE) {
+        case EQ_TOKEN:
+            Test_Symbole(EQ_TOKEN, EQ_ERR);
+            break;
+        case NE_TOKEN:
+            Test_Symbole(NE_TOKEN, NE_ERR);
+            break;
+        case LT_TOKEN:
+            Test_Symbole(LT_TOKEN, LT_ERR);
+            break;
+        case LE_TOKEN:
+            Test_Symbole(LE_TOKEN, LE_ERR);
+            break;
+        case GT_TOKEN:
+            Test_Symbole(GT_TOKEN, GT_ERR);
+            break;
+        case GE_TOKEN:
+            Test_Symbole(GE_TOKEN, GE_ERR);
+            break;
+        case IN_TOKEN:
+            Test_Symbole(IN_TOKEN, IN_ERR);
+            break;
+        default:
+            error("Opérateur relationnel attendu");
+    }
+}
+
+//===================== ==========================
+void simple_expression() {
+    if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN) {
+        sign();
+        term();
+    } else {
+        term();
+    }
+    while (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN || SYM.CODE == OR_TOKEN) {
+        adding_operator();
+        term();
+    }
+}
+
+//===================== ==========================
+void sign() {
+    switch (SYM.CODE) {
+        case PLUS_TOKEN:
+            Test_Symbole(PLUS_TOKEN, PLUS_ERR);
+            break;
+        case MOINS_TOKEN:
+            Test_Symbole(MOINS_TOKEN, MOINS_ERR);
+            break;
+        default:
+            error("Signe attendu");
+    }
+}
+
+//===================== ==========================
+void adding_operator() {
+    switch (SYM.CODE) {
+        case PLUS_TOKEN:
+            Test_Symbole(PLUS_TOKEN, PLUS_ERR);
+            break;
+        case MOINS_TOKEN:
+            Test_Symbole(MOINS_TOKEN, MOINS_ERR);
+            break;
+        case OR_TOKEN:
+            Test_Symbole(OR_TOKEN, OR_ERR);
+            break;
+        default:
+            error("Opérateur d'addition attendu");
+    }
+}
+
+//===================== ==========================
+void term() {
+    factor();
+    while (SYM.CODE == MULT_TOKEN || SYM.CODE == DIV_TOKEN || SYM.CODE == DIVV_TOKEN || SYM.CODE == MOD_TOKEN || SYM.CODE == AND_TOKEN) {
+        multiplying_operator();
+        factor();
+    }
+}
+
+//===================== ==========================
+void multiplying_operator() {
+    switch (SYM.CODE) {
+        case MULT_TOKEN:
+            Test_Symbole(MULT_TOKEN, MULT_ERR);
+            break;
+        case DIV_TOKEN:
+            Test_Symbole(DIV_TOKEN, DIV_ERR);
+            break;
+        case DIVV_TOKEN:
+            Test_Symbole(DIVV_TOKEN, DIVV_ERR);
+            break;
+        case MOD_TOKEN:
+            Test_Symbole(MOD_TOKEN, MOD_ERR);
+            break;
+        case AND_TOKEN:
+            Test_Symbole(AND_TOKEN, AND_ERR);
+            break;
+        default:
+            error("Opérateur de multiplication attendu");
+    }
+}
+
+//===================== ==========================
+void factor() {
+    switch (SYM.CODE) {
+        case ID_TOKEN:
+            variable();
+            break;
+        case NUM_TOKEN:
+            Test_Symbole(NUM_TOKEN, NUM_ERR);
+            break;
+        case FLOAT_TOKEN:
+            Test_Symbole(FLOAT_TOKEN, FLOAT_ERR);
+            break;
+        case CHAR_TOKEN:
+            Test_Symbole(CHAR_TOKEN, CHAR_ERR);
+            break;
+        case BOOL_TOKEN:
+            Test_Symbole(BOOL_TOKEN, BOOL_ERR);
+            break;
+        case QUOTE_TOKEN:
+            Test_Symbole(QUOTE_TOKEN, QUOTE_ERR);
+            break;
+        case TP_TOKEN:
+            Test_Symbole(TP_TOKEN, TP_ERR);
+            break;
+        case COMMENTO_TOKEN:
+            Test_Symbole(COMMENTO_TOKEN, COMMENTO_ERR);
+            break;
+        case CBO_TOKEN:
+            Test_Symbole(CBO_TOKEN, CBO_ERR);
+            break;
+        case CBF_TOKEN:
+            Test_Symbole(CBF_TOKEN, CBF_ERR);
+            break;
+        case AND_TOKEN:
+            Test_Symbole(AND_TOKEN, AND_ERR);
+            break;
+        case OR_TOKEN:
+            Test_Symbole(OR_TOKEN, OR_ERR);
+            break;
+        case COMMENTF_TOKEN:
+            Test_Symbole(COMMENTF_TOKEN, COMMENTF_ERR);
+            break;
+        case TYPE_TOKEN:
+            Test_Symbole(TYPE_TOKEN, TYPE_ERR);
+            break;
+        case NOT_TOKEN:
+            Test_Symbole(NOT_TOKEN, NOT_ERR);
+            break;
+        case CROCHETO_TOKEN:
+            Test_Symbole(CROCHETO_TOKEN, CROCHETO_ERR);
+            expression();
+            Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
+            break;
+        case GOTO_TOKEN:
+            Test_Symbole(GOTO_TOKEN, GOTO_ERR);
+            expression();
+            break;
+        case ELSE_TOKEN:
+            Test_Symbole(ELSE_TOKEN, ELSE_ERR);
+            break;
+        case REPEAT_TOKEN:
+            Test_Symbole(REPEAT_TOKEN, REPEAT_ERR);
+            statement_sequence();
+            Test_Symbole(UNTIL_TOKEN, UNTIL_ERR);
+            expression();
+            break;
+        case FOR_TOKEN:
+            Test_Symbole(FOR_TOKEN, FOR_ERR);
+            variable();
+            Test_Symbole(AFF_TOKEN, AFF_ERR);
+            expression();
+            if (SYM.CODE == TO_TOKEN || SYM.CODE == DOWNTO_TOKEN) {
+                Test_Symbole(SYM.CODE, SYM.CODE == TO_TOKEN ? TO_ERR : DOWNTO_ERR);
+                expression();
+            }
+            Test_Symbole(DO_TOKEN, DO_ERR);
+            statement_sequence();
+            break;
+        case WITH_TOKEN:
+            Test_Symbole(WITH_TOKEN, WITH_ERR);
+            variable();
+            while (SYM.CODE == VIR_TOKEN) {
+                Test_Symbole(VIR_TOKEN, VIR_ERR);
+                variable();
+            }
+            Test_Symbole(DO_TOKEN, DO_ERR);
+            statement_sequence();
+            break;
+        case LABEL_TOKEN:
+            Test_Symbole(LABEL_TOKEN, LABEL_ERR);
+            label();
+            while (SYM.CODE == VIR_TOKEN) {
+                Test_Symbole(VIR_TOKEN, VIR_ERR);
+                label();
+            }
+            Test_Symbole(PV_TOKEN, PV_ERR);
+            break;
+        case ARRAY_TOKEN:
+            Test_Symbole(ARRAY_TOKEN, ARRAY_ERR);
+            variable();
+            Test_Symbole(OF_TOKEN, OF_ERR);
+            component_type();
+            break;
+        case RECORD_TOKEN:
+            Test_Symbole(RECORD_TOKEN, RECORD_ERR);
+            field_list();
+            while (SYM.CODE == PV_TOKEN) {
+                Test_Symbole(PV_TOKEN, PV_ERR);
+                field_list();
+            }
+            Test_Symbole(END_TOKEN, END_ERR);
+            break;
+        case CASE_TOKEN:
+            Test_Symbole(CASE_TOKEN, CASE_ERR);
+            expression();
+            Test_Symbole(OF_TOKEN, OF_ERR);
+            case_list_element();
+            while (SYM.CODE == PV_TOKEN) {
+                Test_Symbole(PV_TOKEN, PV_ERR);
+                case_list_element();
+            }
+            if (SYM.CODE == SEMI_TOKEN) {
+                Test_Symbole(SEMI_TOKEN, SEMI_ERR);
+                statement_sequence();
+            }
+            Test_Symbole(END_TOKEN, END_ERR);
+            break;
+        case SETOF_TOKEN:
+            Test_Symbole(SETOF_TOKEN, SETOF_ERR);
+            Test_Symbole(OF_TOKEN, OF_ERR);
+            base_type();
+            break;
+        case FILEOF_TOKEN:
+            Test_Symbole(FILEOF_TOKEN, FILEOF_ERR);
+            Test_Symbole(OF_TOKEN, OF_ERR);
+            component_type();
+            break;
+        case PROCEDURE_TOKEN:
+            Test_Symbole(PROCEDURE_TOKEN, PROCEDURE_ERR);
+            procedure_heading();
+            Test_Symbole(PV_TOKEN, PV_ERR);
+            block();
+            break;
+        case FUNCTION_TOKEN:
+            Test_Symbole(FUNCTION_TOKEN, FUNCTION_ERR);
+            function_heading();
+            Test_Symbole(PV_TOKEN, PV_ERR);
+            block();
+            break;
+        case IN_TOKEN:
+            Test_Symbole(IN_TOKEN, IN_ERR);
+            base_type();
+            break;
+        case DIVV_TOKEN:
+            Test_Symbole(DIVV_TOKEN, DIVV_ERR);
+            break;
+        case MOD_TOKEN:
+            Test_Symbole(MOD_TOKEN, MOD_ERR);
+            break;
+        default:
+            error("Facteur attendu");
+    }
+}
+
+//===================== ==========================
+void label() {
+    Test_Symbole(NUM_TOKEN, NUM_ERR);
+}
+
+//===================== ==========================
+void case_list_element() {
+    constant();
+    while (SYM.CODE == COMMA_TOKEN) {
+        Test_Symbole(COMMA_TOKEN, COMMA_ERR);
+        constant();
+    }
+    Test_Symbole(COL_TOKEN, COL_ERR);
+    statement_sequence();
+}
+
+//===================== ==========================
+void field_list() {
+    fixed_part();
+    if (SYM.CODE == PV_TOKEN) {
+        Test_Symbole(PV_TOKEN, PV_ERR);
+        variant_part();
+    }
+}
+
+//===================== ==========================
+void fixed_part() {
+    record_section();
+    while (SYM.CODE == PV_TOKEN) {
+        Test_Symbole(PV_TOKEN, PV_ERR);
+        record_section();
+    }
+}
+
+//===================== ==========================
+void record_section() {
+    field_identifier_list();
+    Test_Symbole(COL_TOKEN, COL_ERR);
+    component_type();
+}
+
+//===================== ==========================
+void field_identifier_list() {
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    while (SYM.CODE == VIR_TOKEN) {
+        Test_Symbole(VIR_TOKEN, VIR_ERR);
+        Test_Symbole(ID_TOKEN, ID_ERR);
+    }
+}
+
+//===================== ==========================
+void variant_part() {
+    Test_Symbole(CASE_TOKEN, CASE_ERR);
+    variant();
+    while (SYM.CODE == PV_TOKEN) {
+        Test_Symbole(PV_TOKEN, PV_ERR);
+        variant();
+    }
+}
+
+//===================== ==========================
+void variant() {
+    case_constant_list();
+    Test_Symbole(COL_TOKEN, COL_ERR);
+    field_list();
+}
+
+//===================== ==========================
+void case_constant_list() {
+    constant();
+    while (SYM.CODE == COMMA_TOKEN) {
+        Test_Symbole(COMMA_TOKEN, COMMA_ERR);
+        constant();
+    }
+}
+
+//===================== ==========================
+void base_type() {
+    switch (SYM.CODE) {
+        case CHAR_TOKEN:
+        case INTEGER_TOKEN:
+        case REAL_TOKEN:
+        case BOOLEAN_TOKEN:
+            Test_Symbole(SYM.CODE, SYM.CODE == CHAR_TOKEN ? CHAR_ERR :
+                            SYM.CODE == INTEGER_TOKEN ? INTEGER_ERR :
+                            SYM.CODE == REAL_TOKEN ? REAL_ERR : BOOLEAN_ERR);
+            break;
+        default:
+            error("Type de base attendu");
+    }
+}
+
+//===================== ==========================
+void statement_sequence() {
+    statement();
+    while (SYM.CODE == PV_TOKEN) {
+        Test_Symbole(PV_TOKEN, PV_ERR);
+        statement();
+    }
+}
+//===================== ==========================
+void statement() {
+    switch (SYM.CODE) {
+        case BEGIN_TOKEN:
+            compound_statement();
+            break;
+        case ID_TOKEN:
+            Test_Symbole(ID_TOKEN, ID_ERR);
+            Test_Symbole(AFF_TOKEN, AFF_ERR);
+            expression();
+            break;
+        case IF_TOKEN:
+            Test_Symbole(IF_TOKEN, IF_ERR);
+            expression();
+            Test_Symbole(THEN_TOKEN, THEN_ERR);
+            statement();
+            if (SYM.CODE == ELSE_TOKEN) {
+                Test_Symbole(ELSE_TOKEN, ELSE_ERR);
+                statement();
+            }
+            break;
+        case WHILE_TOKEN:
+            Test_Symbole(WHILE_TOKEN, WHILE_ERR);
+            expression();
+            Test_Symbole(DO_TOKEN, DO_ERR);
+            statement();
+            break;
+        case REPEAT_TOKEN:
+            Test_Symbole(REPEAT_TOKEN, REPEAT_ERR);
+            statement_sequence();
+            Test_Symbole(UNTIL_TOKEN, UNTIL_ERR);
+            expression();
+            break;
+        case FOR_TOKEN:
+            Test_Symbole(FOR_TOKEN, FOR_ERR);
+            variable();
+            Test_Symbole(AFF_TOKEN, AFF_ERR);
+            expression();
+            if (SYM.CODE == TO_TOKEN || SYM.CODE == DOWNTO_TOKEN) {
+                Test_Symbole(SYM.CODE, SYM.CODE == TO_TOKEN ? TO_ERR : DOWNTO_ERR);
+                expression();
+            }
+            Test_Symbole(DO_TOKEN, DO_ERR);
+            statement();
+            break;
+        case WITH_TOKEN:
+            Test_Symbole(WITH_TOKEN, WITH_ERR);
+            variable();
+            while (SYM.CODE == VIR_TOKEN) {
+                Test_Symbole(VIR_TOKEN, VIR_ERR);
+                variable();
+            }
+            Test_Symbole(DO_TOKEN, DO_ERR);
+            statement();
+            break;
+        case GOTO_TOKEN:
+            Test_Symbole(GOTO_TOKEN, GOTO_ERR);
+            expression();
+            break;
+        case CASE_TOKEN:
+            Test_Symbole(CASE_TOKEN, CASE_ERR);
+            expression();
+            Test_Symbole(OF_TOKEN, OF_ERR);
+            case_list_element();
+            while (SYM.CODE == PV_TOKEN) {
+                Test_Symbole(PV_TOKEN, PV_ERR);
+                case_list_element();
+            }
+            if (SYM.CODE == SEMI_TOKEN) {
+                Test_Symbole(SEMI_TOKEN, SEMI_ERR);
+                statement_sequence();
+            }
+            Test_Symbole(END_TOKEN, END_ERR);
+            break;
+        default:
+            error("Statement attendu");
+    }
+}
+//===================== ==========================
+void compound_statement() {
+    Test_Symbole(BEGIN_TOKEN, BEGIN_ERR);
+    statement_sequence();
+    Test_Symbole(END_TOKEN, END_ERR);
+}
+//===================== ==========================
+void constant() {
+    switch (SYM.CODE) {
+        case NUM_TOKEN:
+        case FLOAT_TOKEN:
+        case CHAR_TOKEN:
+        case BOOL_TOKEN:
+        case QUOTE_TOKEN:
+            Test_Symbole(SYM.CODE, SYM.CODE == NUM_TOKEN ? NUM_ERR :
+                            SYM.CODE == FLOAT_TOKEN ? FLOAT_ERR :
+                            SYM.CODE == CHAR_TOKEN ? CHAR_ERR :
+                            SYM.CODE == BOOL_TOKEN ? BOOL_ERR : QUOTE_ERR);
+            break;
+        default:
+            error("Constante attendue");
+    }
+}
+
 //===================== main ==========================
 
 /*
