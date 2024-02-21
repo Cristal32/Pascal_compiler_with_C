@@ -357,6 +357,7 @@ void lire_mot()
     {
         SYM.CODE = MOD_TOKEN;
     }
+
     else
     {
         // If it's not a keyword, it's an identifier
@@ -414,8 +415,8 @@ void Sym_Suiv()
             SYM.CODE = PV_TOKEN;
             Lire_Car();
             break;
-       
-       
+
+
 
         case '+':
             SYM.CODE = PLUS_TOKEN;
@@ -590,7 +591,7 @@ void PROGRAM()
 
     //Test_Symbole(PT_TOKEN, PT_ERR);
     // Check for the dot after BLOCK
-    if (SYM.CODE == PT_TOKEN)
+   /* if (SYM.CODE == PT_TOKEN)
     {
         Sym_Suiv(); // Consume the dot
         printf("Program execution completed.\nBRAVO: le programme est correcte FIN PROGRAMME!!!");
@@ -607,7 +608,7 @@ void PROGRAM()
             printf("Current Lexeme: %s\n", SYM.NOM);
             Sym_Suiv();
         }
-    }
+    }*/
 }
 //===================== BLOCK ==========================
 void BLOCK()
@@ -616,7 +617,7 @@ void BLOCK()
     constant_definition_part();//VARS();
     type_definition_part();//INSTS*
     variable_declaration_part();
-   // procedure_and_function_declaration_part();
+    procedure_and_function_declaration_part();
    // statement_part();
 }
 //===================== label declaration part ==========================
@@ -846,40 +847,32 @@ void string() {
     }
 }
 
-//===================== type_definition_part ==========================
-// Implémentation de la production <type definition part>
 void type_definition_part() {
-
+    // Vérifier si le token actuel est "type"
     if (SYM.CODE == TYPE_TOKEN) {
-        // Si le token actuel est "type", consommons-le
+        // Consommer le token "type"
         Sym_Suiv();
-        // Analysons la définition du type
+        // Analyser la définition du type
+                    printf("j'entre avant le while \n ");
+
         type_definition();
 
-        // Tant qu'on trouve des points-virgules, continuons d'analyser les définitions de type
-        while (SYM.CODE == PV_TOKEN) {
+        // Tant qu'on trouve des points-virgules et que le prochain symbole n'est pas une déclaration de procédure ou de fonction, analysons les définitions de type suivantes
+        while (SYM.CODE == PV_TOKEN && SYM.CODE != PROCEDURE_TOKEN && SYM.CODE != FUNCTION_TOKEN) {
             Sym_Suiv(); // Consommer le point-virgule
+            printf("j'entre de while \n ");
+            if (SYM.CODE != PROCEDURE_TOKEN && SYM.CODE != FUNCTION_TOKEN && SYM.CODE != LABEL_TOKEN && SYM.CODE != CONST_TOKEN && SYM.CODE != VAR_TOKEN){
             type_definition(); // Analyser la définition de type suivante
         }
-
-        // Vérifier le point-virgule final
-       /* if (SYM.CODE != PV_TOKEN) {
-            printf("Erreur : Point-virgule attendu après la définition de type\n");
-        Erreur(PV_ERR);
-        }*/
-
-       Sym_Suiv(); // Consommer le point-virgule final
     }
-    printf(SYM.NOM);
-
-    
+        // Pas besoin de consommer le dernier point-virgule ici, car la boucle s'arrête lorsque le prochain symbole n'est pas un point-virgule
+    } else {
+        // Si aucun token de type n'est présent, la production est vide
+        // Aucune action requise
+    }
 }
 
-
-//===================== type_definition ==========================
-// Implémentation de la production <type definition>
 void type_definition() {
-
     if (SYM.CODE == ID_TOKEN) {
         // Si le token actuel est un identifiant, c'est la définition d'un type
         Sym_Suiv(); // Consommer l'identifiant
@@ -887,7 +880,7 @@ void type_definition() {
         // Vérifier le signe "="
         if (SYM.CODE != EG_TOKEN) {
             printf("Erreur : Signe '=' attendu dans la définition de type\n");
-        Erreur(EG_ERR);
+            Erreur(EG_ERR);
         }
 
         Sym_Suiv(); // Consommer le signe "="
@@ -1026,13 +1019,8 @@ void subrange_type() {
 
     constant();
 
-printf("le symbole de entree de constant dans subrange_type");
-    printf(SYM.NOM);
-    printf("\n");
+
                 Sym_Suiv();
-printf("le symbole de sortie de constant dans subrange_type");
-    printf(SYM.NOM);
-    printf("\n");
     // Vérifier si le prochain jeton est ".."
     if (SYM.CODE == DOTDOT_TOKEN) {
         // Consommer ".."
@@ -1494,6 +1482,87 @@ void pointer_type() {
         exit(1);
     }
 }
+
+//=====================Function_procedure ==========================
+// Fonctions pour les fonctions et les procedures
+void procedure_and_function_declaration_part() {
+    while (SYM.CODE == PROCEDURE_TOKEN || SYM.CODE == FUNCTION_TOKEN) {
+        procedure_or_function_declaration();
+        Test_Symbole(PV_TOKEN, PV_ERR); // Point-virgule entre les déclarations
+    }
+}
+
+void procedure_or_function_declaration() {
+    if (SYM.CODE == PROCEDURE_TOKEN) {
+        procedure_declaration();
+    } else if (SYM.CODE == FUNCTION_TOKEN) {
+        function_declaration();
+    }
+}
+
+void procedure_declaration() {
+    procedure_heading();
+    BLOCK();
+}
+
+void procedure_heading() {
+    Test_Symbole(PROCEDURE_TOKEN, PROCEDURE_ERR);
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    if (SYM.CODE == PV_TOKEN) {
+        Sym_Suiv(); // Consommer le point-virgule
+    } else if (SYM.CODE == PO_TOKEN) {
+        Sym_Suiv(); // Consommer la parenthèse gauche
+        formal_parameter_section();
+        while (SYM.CODE == PV_TOKEN) {
+            Sym_Suiv(); // Consommer le point-virgule
+            formal_parameter_section();
+        }
+        Test_Symbole(PF_TOKEN, PF_ERR);
+    }
+}
+
+void formal_parameter_section() {
+    if (SYM.CODE == VAR_TOKEN) {
+        Sym_Suiv(); // Consommer VAR
+    }
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    while (SYM.CODE == VIR_TOKEN) {
+        Sym_Suiv(); // Consommer la virgule
+        Test_Symbole(ID_TOKEN, ID_ERR);
+    }
+    Test_Symbole(TP_TOKEN, TP_ERR);
+    //Test_Symbole(TYPE_TOKEN, TYPE_ERR);
+    type();
+}
+
+void function_declaration() {
+    function_heading();
+    BLOCK();
+}
+
+void function_heading() {
+    printf("in the function heading\n");
+    Test_Symbole(FUNCTION_TOKEN, FUNCTION_ERR);
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    if (SYM.CODE == PV_TOKEN) {
+        Sym_Suiv(); // Consommer le point-virgule
+    } else if (SYM.CODE == PO_TOKEN) {
+        Sym_Suiv(); // Consommer la parenthèse gauche
+        formal_parameter_section();
+        while (SYM.CODE == PV_TOKEN) {
+            Sym_Suiv(); // Consommer le point-virgule
+            formal_parameter_section();
+        }
+        Test_Symbole(PF_TOKEN, PF_ERR);
+    }
+    Test_Symbole(TP_TOKEN, TP_ERR);
+    // Test_Symbole(TYPE_TOKEN, TYPE_ERR);
+        type();
+
+    Test_Symbole(PV_TOKEN, PV_ERR); // Point-virgule
+}
+
+
 //===================== main ==========================
 
 /*
@@ -1535,11 +1604,11 @@ int main()
 
     if (SYM.CODE == FIN_TOKEN)
     {
-        printf("BRAVO: le programme est correcte on arrive a la fin !!!\n");
+        printf("BRAVO de main: le programme est correcte on arrive a la fin !!!\n");
     }
     else
     {
-        printf("PAS BRAVO: fin de programme errone!!!!\n");
+        printf("PAS BRAVO de MAIN: fin de programme errone!!!!\n");
         printf("Current Token: %d\n", SYM.CODE);
         printf("Current Lexeme: %s\n", SYM.NOM);
         Sym_Suiv(); // Move this line inside the else block
