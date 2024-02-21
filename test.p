@@ -26,7 +26,7 @@ end;
 begin
     num1 := 10;
     num2 := 20;
-    num4 := 4;
+    PI := 3;
 
     writeln('La somme de ', num1, ' et ', num2, ' est ');
 end.

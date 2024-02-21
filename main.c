@@ -1406,9 +1406,7 @@ void procedure_or_function_declaration() {
     } else if (SYM.CODE == FUNCTION_TOKEN) {
         function_declaration();
         printf(SYM.NOM);
-
     }
-
 }
 
 void procedure_declaration() {
@@ -1537,7 +1535,9 @@ void INST(){
             exists = check_if_declared(SYM.NOM);
             if(exists == 1){
                 Sym_Suiv();
-                if (SYM.CODE == AFF_TOKEN){ AFFEC();}
+                if (SYM.CODE == AFF_TOKEN){
+                        is_constant_affectee(SYM.NOM);
+                        AFFEC();}
                 else{ procedure_or_function_calling();}
                 break;
             }else{
@@ -1574,48 +1574,6 @@ void INST(){
         }
 }
 
-// =================== INST_FCT =====================
-void INST_FCT()
-
-{
-    //INSTS | AFFEC | SI | TANTQUE | ECRIRE | LIRE | e
-    switch (SYM.CODE)
-    {
-    case BEGIN_TOKEN:
-
-        INSTS();
-        break;
-
-    case ID_TOKEN:
-        Sym_Suiv();
-        if (SYM.CODE == AFF_TOKEN){
-        AFFEC();}
-        else{
-        procedure_or_function_calling();}
-        break;
-    case FUNCTION_TOKEN:
-        procedure_and_function_declaration_part();
-        break;
-    case PROCEDURE_TOKEN:
-        procedure_and_function_declaration_part();
-        break;
-    case IF_TOKEN:
-        SI();
-        break;
-
-    case WHILE_TOKEN:
-        TANTQUE();
-        break;
-    case WRITE_TOKEN:
-        ECRIRE();
-        break;
-    case READ_TOKEN:
-        LIRE();
-        break;
-    default:
-        break;
-    }
-}
 
 //===================== AFFEC ==========================
 void AFFEC()
@@ -1939,6 +1897,19 @@ void double_declaration(char* idf_nom, TSYM idf_code){
     } else {
         printf("Erreur: double declaration de %s, ligne %d\n", idf_nom, ligne_actuelle);
         exit(1);
+    }
+}
+
+//regle 4: pas d'affectation pour les constantes
+
+void is_constant_affectee(char* idf_nom){
+    for(int i=0; i < TIDFS_indice; i++){
+        if (strcmp(TAB_IDFS[i].NOM, idf_nom) == 0) {
+                if(TAB_IDFS[i].TIDF == TCONST){
+                    printf("Erreur: Pas d'affectation pour les constantes: %s, ligne %d\n", idf_nom, ligne_actuelle);
+                    exit(1);
+                }
+        }
     }
 }
 
