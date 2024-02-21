@@ -109,9 +109,23 @@ typedef struct
 {
     CODES CODE;
     char NOM[20];
+    int VAL;
 } Current_sym;
 
 Current_sym SYM;
+
+// ============================= table de symboles =====================================
+typedef enum {TPROG, TCONST, TVAR} TSYM;
+
+typedef struct {
+    char NOM[20];
+    TSYM TIDF;
+} T_TAB_IDF;
+
+T_TAB_IDF TAB_IDFS[100];
+int TIDFS_indice = 0;
+
+// =======================================================================================
 int ligne_actuelle = 1;
 
 FILE *fichier;
@@ -138,163 +152,54 @@ void lire_mot()
         Lire_Car();
     }
 
-    // Ajout du caract�re de fin de cha�ne
+    // Ajout du caract�re de fin de chaine
     mot[indice] = '\0';
 
-    // V�rifier si le mot est un mot-cl�
-    if (stricmp(mot, "program") == 0) {
-        SYM.CODE = PROGRAM_TOKEN;
-    }
-     else if (stricmp(mot, "set") == 0)
-    {
-        SYM.CODE = SET_TOKEN;
-    }
-    else if (stricmp(mot, "const") == 0)
-    {
-        SYM.CODE = CONST_TOKEN;
-    }
-    else if (stricmp(mot, "var") == 0)
-    {
-        SYM.CODE = VAR_TOKEN;
-    }
-    else if (stricmp(mot, "boolean") == 0)
-    {
-        SYM.CODE = BOOL_TOKEN;
-    }
-    else if (stricmp(mot, "begin") == 0)
-    {
-        SYM.CODE = BEGIN_TOKEN;
-    }
-    else if (stricmp(mot, "end") == 0)
-    {
-        SYM.CODE = END_TOKEN;
-    }
-    else if (stricmp(mot, "if") == 0)
-    {
-        SYM.CODE = IF_TOKEN;
-    }
-    else if (stricmp(mot, "writeln") == 0)
-    {
-        SYM.CODE = WRITE_TOKEN;
-    }
-     else if (stricmp(mot, "file") == 0)
-    {
-        SYM.CODE = FILE_TOKEN;
-    }
+    // Verifier si le mot est un mot-cle
+    if (stricmp(mot, "program") == 0) { SYM.CODE = PROGRAM_TOKEN; }
+    else if (stricmp(mot, "set") == 0) { SYM.CODE = SET_TOKEN; }
+    else if (stricmp(mot, "const") == 0) { SYM.CODE = CONST_TOKEN; }
+    else if (stricmp(mot, "var") == 0) { SYM.CODE = VAR_TOKEN; }
+    else if (stricmp(mot, "boolean") == 0) { SYM.CODE = BOOL_TOKEN; }
+    else if (stricmp(mot, "begin") == 0) { SYM.CODE = BEGIN_TOKEN; }
+    else if (stricmp(mot, "end") == 0) { SYM.CODE = END_TOKEN; }
+    else if (stricmp(mot, "if") == 0) { SYM.CODE = IF_TOKEN; }
+    else if (stricmp(mot, "writeln") == 0) { SYM.CODE = WRITE_TOKEN; }
+    else if (stricmp(mot, "file") == 0) { SYM.CODE = FILE_TOKEN; }
+    else if (stricmp(mot, "then") == 0) { SYM.CODE = THEN_TOKEN; }
+    else if (stricmp(mot, "while") == 0) { SYM.CODE = WHILE_TOKEN; }
+    else if (stricmp(mot, "E") == 0) { SYM.CODE = E_TOKEN; }
+    else if (stricmp(mot, "do") == 0) { SYM.CODE = DO_TOKEN; }
+    else if (stricmp(mot, "readln") == 0) { SYM.CODE = READ_TOKEN; }
+    else if (stricmp(mot, "string") == 0) { SYM.CODE = STRING_TOKEN; }
+    else if (stricmp(mot, "real") == 0) { SYM.CODE = FLOAT_TOKEN; }
+    else if (stricmp(mot, "integer") == 0) { SYM.CODE = INTEGER_TOKEN; }
+    else if (stricmp(mot, "char") == 0) { SYM.CODE = CHAR_TOKEN; }
+    else if (stricmp(mot, "and") == 0) { SYM.CODE = AND_TOKEN; }
+    else if (stricmp(mot, "or") == 0) { SYM.CODE = OR_TOKEN; }
+    else if (stricmp(mot, "goto") == 0) { SYM.CODE = GOTO_TOKEN; }
+    else if (stricmp(mot, "else") == 0) { SYM.CODE = ELSE_TOKEN; }
+    else if (stricmp(mot, "repeat") == 0) { SYM.CODE = REPEAT_TOKEN; }
+    else if (stricmp(mot, "until") == 0) { SYM.CODE = UNTIL_TOKEN; }
+    else if (stricmp(mot, "for") == 0) { SYM.CODE = FOR_TOKEN; }
+    else if (stricmp(mot, "to") == 0) { SYM.CODE = TO_TOKEN; }
+    else if (stricmp(mot, "downto") == 0) { SYM.CODE = DOWNTO_TOKEN; }
+    else if (stricmp(mot, "with") == 0) { SYM.CODE = WITH_TOKEN; }
+    else if (stricmp(mot, "type") == 0) { SYM.CODE = TYPE_TOKEN; }
+    else if (stricmp(mot, "label") == 0) { SYM.CODE = LABEL_TOKEN; }
+    else if (stricmp(mot, "array") == 0) { SYM.CODE = ARRAY_TOKEN; }
+    else if (stricmp(mot, "of") == 0) { SYM.CODE = OF_TOKEN; }
+    else if (stricmp(mot, "record") == 0) { SYM.CODE = RECORD_TOKEN; }
+    else if (stricmp(mot, "case") == 0) { SYM.CODE = CASE_TOKEN; }
+    else if (stricmp(mot, "setof") == 0) { SYM.CODE = SETOF_TOKEN; }
+    else if (stricmp(mot, "fileof") == 0) { SYM.CODE = FILEOF_TOKEN; }
+    else if (stricmp(mot, "procedure") == 0) { SYM.CODE = PROCEDURE_TOKEN; }
+    else if (stricmp(mot, "function") == 0) { SYM.CODE = FUNCTION_TOKEN; }
+    else if (stricmp(mot, "in") == 0) { SYM.CODE = IN_TOKEN; }
+    else if (stricmp(mot, "div") == 0) { SYM.CODE = DIVV_TOKEN; }
+    else if (stricmp(mot, "mod") == 0) { SYM.CODE = MOD_TOKEN; }
+    else { SYM.CODE = ID_TOKEN; }
 
-    else if (stricmp(mot, "then") == 0)
-    {
-        SYM.CODE = THEN_TOKEN;
-    }
-    else if (stricmp(mot, "while") == 0)
-    {
-        SYM.CODE = WHILE_TOKEN;
-    }
-    else if (stricmp(mot, "E") == 0)
-    {
-        SYM.CODE = E_TOKEN;
-    }
-    else if (stricmp(mot, "do") == 0)
-    {
-        SYM.CODE = DO_TOKEN;
-    }
-    else if (stricmp(mot, "readln") == 0)
-    {
-        SYM.CODE = READ_TOKEN;
-    }
-    else if (stricmp(mot, "string") == 0)
-    {
-        SYM.CODE = STRING_TOKEN;
-    }
-    else if (stricmp(mot, "real") == 0)
-    {
-        SYM.CODE = FLOAT_TOKEN;
-    }
-    else if (stricmp(mot, "integer") == 0)
-    {
-        SYM.CODE = INTEGER_TOKEN;
-    }else if (stricmp(mot, "char") == 0)
-    {
-        SYM.CODE = CHAR_TOKEN;
-    }else if (stricmp(mot, "and") == 0)
-    {
-        SYM.CODE = AND_TOKEN;
-    }else if (stricmp(mot, "or") == 0)
-    {
-        SYM.CODE = OR_TOKEN;
-    }else if (stricmp(mot, "goto") == 0)
-    {
-        SYM.CODE = GOTO_TOKEN;
-    }else if (stricmp(mot, "else") == 0)
-    {
-        SYM.CODE = ELSE_TOKEN;
-    }else if (stricmp(mot, "repeat") == 0)
-    {
-        SYM.CODE = REPEAT_TOKEN;
-    }else if (stricmp(mot, "until") == 0)
-    {
-        SYM.CODE = UNTIL_TOKEN;
-    }else if (stricmp(mot, "for") == 0)
-    {
-        SYM.CODE = FOR_TOKEN;
-    }else if (stricmp(mot, "to") == 0)
-    {
-        SYM.CODE = TO_TOKEN;
-    }else if (stricmp(mot, "downto") == 0)
-    {
-        SYM.CODE = DOWNTO_TOKEN;
-    }else if (stricmp(mot, "with") == 0)
-    {
-        SYM.CODE = WITH_TOKEN;
-    }
-    else if (stricmp(mot, "type") == 0)
-    {
-        SYM.CODE = TYPE_TOKEN;
-    }else if (stricmp(mot, "label") == 0)
-    {
-        SYM.CODE = LABEL_TOKEN;
-    }
-    else if (stricmp(mot, "array") == 0)
-    {
-        SYM.CODE = ARRAY_TOKEN;
-    }else if (stricmp(mot, "of") == 0)
-    {
-        SYM.CODE = OF_TOKEN;
-    }else if (stricmp(mot, "record") == 0)
-    {
-        SYM.CODE = RECORD_TOKEN;
-    }else if (stricmp(mot, "case") == 0)
-    {
-        SYM.CODE = CASE_TOKEN;
-    }else if (stricmp(mot, "setof") == 0)
-    {
-        SYM.CODE = SETOF_TOKEN;
-    }else if (stricmp(mot, "fileof") == 0)
-    {
-        SYM.CODE = FILEOF_TOKEN;
-    }else if (stricmp(mot, "procedure") == 0)
-    {
-        SYM.CODE = PROCEDURE_TOKEN;
-    }else if (stricmp(mot, "function") == 0)
-    {
-        SYM.CODE = FUNCTION_TOKEN;
-    }else if (stricmp(mot, "in") == 0)
-    {
-        SYM.CODE = IN_TOKEN;
-    }
-    else if (stricmp(mot, "div") == 0)
-    {
-        SYM.CODE = DIVV_TOKEN;
-    }else if (stricmp(mot, "mod") == 0)
-    {
-        SYM.CODE = MOD_TOKEN;
-    }
-
-    else
-    {
-        // If it's not a keyword, it's an identifier
-        SYM.CODE = ID_TOKEN;
-    }
 
     // Stockage du mot dans le jeton
     strcpy(SYM.NOM, mot);
@@ -340,6 +245,7 @@ void lire_nombre() {
     }
 
     strcpy(SYM.NOM, nombre);
+    SYM.VAL = atoi(SYM.NOM);
 }
 
 
@@ -540,6 +446,13 @@ void Test_Symbole(CODES cl, CODES_ERR COD_ERR)
 void PROGRAM()
 {
     Test_Symbole(PROGRAM_TOKEN, PROGRAM_ERR);
+
+    // l'identifiant de program est ajoute dans la table d'identifiants
+    strncpy(TAB_IDFS[TIDFS_indice].NOM, SYM.NOM, sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1);
+    TAB_IDFS[TIDFS_indice].NOM[sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1] = '\0';
+    TAB_IDFS[TIDFS_indice].TIDF = TPROG;
+    TIDFS_indice++;
+
     Test_Symbole(ID_TOKEN, ID_ERR);
     Test_Symbole(PV_TOKEN, PV_ERR);
     BLOCK();
@@ -670,28 +583,32 @@ void constant_definition_part() {
                // Sym_Suiv();
 }
 
-
-
 //===================== constant_definition ==========================
 // Fonction pour analyser une définition de constante
 void constant_definition() {
     if (SYM.CODE == ID_TOKEN) {
-        Sym_Suiv(); // Consommer le token identifiant
+            // l'identifiant de la constante est ajoute dans la table d'identifiants
+            strncpy(TAB_IDFS[TIDFS_indice].NOM, SYM.NOM, sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1);
+            TAB_IDFS[TIDFS_indice].NOM[sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1] = '\0';
+            TAB_IDFS[TIDFS_indice].TIDF = TCONST;
+            TIDFS_indice++;
 
-        if (SYM.CODE == EG_TOKEN) {
-            Sym_Suiv(); // Consommer le token "="
-            // Vérifier si la constante est une valeur directe
-            if (SYM.CODE == NUM_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == FLOAT_TOKEN ) {
-                Sym_Suiv(); // Consommer la constante directe
+            Sym_Suiv(); // Consommer le token identifiant
+
+            if (SYM.CODE == EG_TOKEN) {
+                Sym_Suiv(); // Consommer le token "="
+                // Vérifier si la constante est une valeur directe
+                if (SYM.CODE == NUM_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == FLOAT_TOKEN ) {
+                    Sym_Suiv(); // Consommer la constante directe
+                } else {
+                    // Si ce n'est pas une constante directe, analyser la constante associée
+                    constant(); // Analyser la constante associée
+                }
             } else {
-                // Si ce n'est pas une constante directe, analyser la constante associée
-                constant(); // Analyser la constante associée
+                // Gérer une erreur si le token suivant n'est pas "="
+                printf("Erreur : '=' attendu dans la définition de constante\n");
+                Erreur(EG_ERR);
             }
-        } else {
-            // Gérer une erreur si le token suivant n'est pas "="
-            printf("Erreur : '=' attendu dans la définition de constante\n");
-            Erreur(EG_ERR);
-        }
     } else {
                        // Sym_Suiv();
 
@@ -1391,31 +1308,44 @@ void variable_declaration_part() {
 
     // Tant que nous trouvons un identifiant (nom de variable), lire et traiter les déclarations de variables
     while (SYM.CODE == ID_TOKEN) {
-        // Appeler la fonction de déclaration de variable
-        variable_declaration();
 
-        // Vérifier si nous avons atteint la fin des déclarations de variables
-        if (SYM.CODE != PV_TOKEN) {
-            // Si le prochain symbole n'est pas un point-virgule, cela signifie qu'il n'y a plus de variables à déclarer
-            // Donc nous pouvons sortir de la boucle
-            break;
-        }
+            // l'identifiant de la variable est ajoute dans la table d'identifiants
+            strncpy(TAB_IDFS[TIDFS_indice].NOM, SYM.NOM, sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1);
+            TAB_IDFS[TIDFS_indice].NOM[sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1] = '\0';
+            TAB_IDFS[TIDFS_indice].TIDF = TVAR;
+            TIDFS_indice++;
 
-        // Consommer le point-virgule
-        Sym_Suiv();
+            // Appeler la fonction de déclaration de variable
+            variable_declaration();
+
+            // Vérifier si nous avons atteint la fin des déclarations de variables
+            if (SYM.CODE != PV_TOKEN) {
+                // Si le prochain symbole n'est pas un point-virgule, cela signifie qu'il n'y a plus de variables à déclarer
+                // Donc nous pouvons sortir de la boucle
+                break;
+            }
+
+            // Consommer le point-virgule
+            Sym_Suiv();
     }
 }
 //===================== variable_declaration ==========================
 // Fonction pour la déclaration de variable
 void variable_declaration() {
     // Appeler la fonction de l'identifiant de variable
-    printf("je suis dans variable_declaration \n");
+    //printf("je suis dans variable_declaration \n");
     variable_identifier();
 
     // Tant que nous trouvons une virgule, lire d'autres identifiants de variables
     while (SYM.CODE == VIR_TOKEN) {
         // Consommer la virgule
         Sym_Suiv();
+
+        // l'identifiant de la variable est ajoute dans la table d'identifiants
+        strncpy(TAB_IDFS[TIDFS_indice].NOM, SYM.NOM, sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1);
+        TAB_IDFS[TIDFS_indice].NOM[sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1] = '\0';
+        TAB_IDFS[TIDFS_indice].TIDF = TVAR;
+        TIDFS_indice++;
 
         // Appeler la fonction de l'identifiant de variable
         variable_identifier();
@@ -1991,7 +1921,7 @@ int is_simple_type() {
 
 int main()
 {
-    fichier = fopen("program.p", "r");
+    fichier = fopen("test.p", "r");
     if (fichier == NULL)
     {
         perror("Erreur lors de l'ouverture du fichier");
@@ -2009,6 +1939,10 @@ int main()
     if (SYM.CODE == PT_TOKEN)
     {
         printf("BRAVO de main: le programme est correcte on arrive a la fin !!!\n");
+        printf("Contenu de TAB_IDFS :\n");
+        for (int i = 0; i < TIDFS_indice; i++) {
+            printf("Indice %d : %s\n", i, TAB_IDFS[i].NOM);
+        }
     }
     else
     {
