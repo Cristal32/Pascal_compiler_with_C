@@ -270,7 +270,7 @@ void lire_mot()
     {
         SYM.CODE = DO_TOKEN;
     }
-    else if (stricmp(mot, "read") == 0)
+    else if (stricmp(mot, "readln") == 0)
     {
         SYM.CODE = READ_TOKEN;
     }
@@ -621,6 +621,7 @@ void PROGRAM()
     }*/
 }
 //===================== BLOCK ==========================
+
 void BLOCK()
 {
     label_declaration_part();//consts();
@@ -1454,6 +1455,7 @@ void variable_declaration_part() {
 // Fonction pour la déclaration de variable
 void variable_declaration() {
     // Appeler la fonction de l'identifiant de variable
+    printf("je suis dans variable_declaration \n");
     variable_identifier();
 
     // Tant que nous trouvons une virgule, lire d'autres identifiants de variables
@@ -1532,6 +1534,7 @@ void procedure_and_function_declaration_part() {
         procedure_or_function_declaration();
         Test_Symbole(PV_TOKEN, PV_ERR); // Point-virgule entre les déclarations
     }
+
 }
 
 void procedure_or_function_declaration() {
@@ -1539,7 +1542,11 @@ void procedure_or_function_declaration() {
         procedure_declaration();
     } else if (SYM.CODE == FUNCTION_TOKEN) {
         function_declaration();
+        printf("d'apres procedure or function declaration on a \n");
+        printf(SYM.NOM);
+
     }
+
 }
 
 void procedure_declaration() {
@@ -1580,6 +1587,7 @@ void formal_parameter_section() {
 void function_declaration() {
     function_heading();
     BLOCK();
+    printf("on a termine function_declaration \n");
 }
 
 void function_heading() {
@@ -1608,6 +1616,7 @@ void function_heading() {
 //===================== INSTS ==========================
 void INSTS()
 {
+    printf("dans la fonction mais je suis dans insts\n");
     // Vérifier si le prochain jeton est "begin"
     if (SYM.CODE == BEGIN_TOKEN)
     {
@@ -1622,7 +1631,7 @@ void INSTS()
         {
             // Consommer le point-virgule
             Sym_Suiv();
-
+printf("je suis dans le while de insts\n");
             // Appeler la fonction pour analyser l'instruction suivante
             INST();
         }
@@ -1631,7 +1640,15 @@ void INSTS()
         if (SYM.CODE == END_TOKEN)
         {
             // Consommer "end"
+            printf("jetrouve le end de insts\n");
+
             Sym_Suiv();
+            printf("apres \n");
+            printf(SYM.NOM);
+
+
+
+
         }
         else
         {
@@ -1721,12 +1738,15 @@ void ECRIRE()
     }
     else{
     EXPR();
-
+    }
     while (SYM.CODE == VIR_TOKEN)
     {
         Sym_Suiv();
-        EXPR();
+if (SYM.CODE == QUOTE_TOKEN){
+        string();
     }
+    else{
+    EXPR();    }
     }
     Test_Symbole(PF_TOKEN, PF_ERR);
 }
@@ -1736,13 +1756,21 @@ void LIRE()
 {
     Test_Symbole(READ_TOKEN, READ_ERR);
     Test_Symbole(PO_TOKEN, PO_ERR);
+    if (SYM.CODE == QUOTE_TOKEN){
+        string();
+    }
+    else{
     Test_Symbole(ID_TOKEN, ID_ERR);
-
+    }
     while (SYM.CODE == VIR_TOKEN)
     {
         Sym_Suiv();
-        Test_Symbole(ID_TOKEN, ID_ERR);
+  if (SYM.CODE == QUOTE_TOKEN){
+        string();
     }
+    else{
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    }    }
 
     Test_Symbole(PF_TOKEN, PF_ERR);
 }

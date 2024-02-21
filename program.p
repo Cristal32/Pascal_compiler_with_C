@@ -1,6 +1,9 @@
 program Factorial;
 
-function CalculateFactorial(n: integer): integer;
+
+var
+    num: integer;
+function CalculateFactorial(n: real): integer;
 begin
     if n <= 1 then
         CalculateFactorial := 1
@@ -8,8 +11,6 @@ begin
         CalculateFactorial1 := n * 4;
 end;
 
-var
-    num: integer;
 begin
     writeln('Entrez un entier positif : ');
     readln(num);
