@@ -955,7 +955,7 @@ void type_definition() {
 void type() {
     printf(SYM.NOM);
     printf("\n");
-    if (SYM.CODE == INTEGER_TOKEN || SYM.CODE == FLOAT_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == BOOL_TOKEN) {
+    if (SYM.CODE == INTEGER_TOKEN || SYM.CODE == FLOAT_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == BOOL_TOKEN ||SYM.CODE == ID_TOKEN) {
         Sym_Suiv(); // Avance au prochain symbole après le type prédéfini
 
     }else if (SYM.CODE == PO_TOKEN) {
@@ -1609,7 +1609,7 @@ void procedure_or_function_calling() {
         }else if(SYM.CODE == QUOTE_TOKEN){
             string();
         }
-        
+
             while (SYM.CODE == VIR_TOKEN) {
                 Sym_Suiv(); // Consommer la virgule
                 Test_Symbole(ID_TOKEN, ID_ERR);
@@ -1627,7 +1627,7 @@ void formal_parameter_section() {
     if (SYM.CODE == ID_TOKEN){
         Sym_Suiv(); // Consommer VAR
 
-   
+
 
     while (SYM.CODE == VIR_TOKEN) {
         Sym_Suiv(); // Consommer la virgule
@@ -1732,7 +1732,13 @@ void INST()
 
     case ID_TOKEN:
         Sym_Suiv();
-        if (SYM.CODE == AFF_TOKEN){
+        
+         if (SYM.CODE == CROCHETO_TOKEN){
+        Sym_Suiv();
+        Test_Symbole(ID_TOKEN, ID_ERR);
+        Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
+    }
+     if (SYM.CODE == AFF_TOKEN){
         AFFEC();}
         else{
         procedure_or_function_calling();}
@@ -1833,9 +1839,9 @@ void LIRE()
   if (SYM.CODE == QUOTE_TOKEN){
         string();
     }
-    
 
-    }    
+
+    }
     if (SYM.CODE == CROCHETO_TOKEN){
         Sym_Suiv();
         Test_Symbole(ID_TOKEN, ID_ERR);
@@ -1997,7 +2003,7 @@ void FACT()
         Sym_Suiv();
         Test_Symbole(ID_TOKEN, ID_ERR);
         Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
-    }        
+    }
         break;
     case NUM_TOKEN:
         Test_Symbole(NUM_TOKEN, NUM_ERR);

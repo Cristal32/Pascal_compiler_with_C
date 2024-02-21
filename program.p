@@ -1,55 +1,31 @@
-program GestionNotes;
+program NewTypesExample;
 
-const
-    MAX = 3;
-
-var
-    eleveNom: array[1 ..MAX] of string;
-    eleveNote: array[1 ..MAX] of real;
-
-procedure SaisirNotes();
-var
-    i: integer;
-begin
-    writeln('Saisie des notes des élèves :');
-    for i := 1 to MAX do
-    begin
-        writeln(eleveNote[i]);
-
-        writeln('Nom de leleve ', item, ' : ');
-        readln(eleveNom[i]);
-        writeln('Note de eleve ', i, ' : ');
-        readln(eleveNote[i]);
+type
+    DayOfWeek = (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday);
+    Point = record
+        x, y: integer;
     end;
-end;
+    IntArray = array [1 ..10] of integer;
 
-function MoyenneGenerale(): real;
 var
+    day: DayOfWeek;
+    p: Point;
+    arr: IntArray;
     i: integer;
-    total: real;
-begin
-    total := 0;
-    for i := 1 to MAX do
-    begin
-        total := total + eleveNote[i];
-    end;
-    MoyenneGenerale := total / MAX;
-end;
-
-procedure AfficherNotesEtMoyenne();
-var
-    i: integer;
-begin
-    writeln('Liste des élèves et de leurs notes :');
-    for i := 1 to MAX do
-    begin
-        writeln('Nom de lélève ', i, ' : ', eleveNom[i]);
-        writeln('Note de lélève ', i, ' : ', eleveNote[i]);
-    end;
-    writeln('La moyenne générale est de : ', MoyenneGenerale());
-end;
 
 begin
-    SaisirNotes();
-    AfficherNotesEtMoyenne();
+    day := Monday;
+    writeln('Day: ', day);
+
+
+    for i := 1 to 10 do
+    begin
+        arr[item] := i * 2;
+    end;
+
+    writeln('Array:');
+    for i := 1 to 10 do
+    begin
+        writeln('Element ', i, ': ', arr[i]);
+    end;
 end.
