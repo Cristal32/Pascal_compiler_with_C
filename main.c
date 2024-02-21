@@ -667,7 +667,12 @@ void label() {
         // Traitement du label
         // Ici, vous pouvez stocker ou utiliser la valeur du label
         Sym_Suiv(); // Consommer le token NUM
-    } else {
+    }
+    if (SYM.CODE == ID_TOKEN) {
+        // Traitement du label
+        // Ici, vous pouvez stocker ou utiliser la valeur du label
+        Sym_Suiv(); // Consommer le token NUM
+    }  else {
         // Gérer une erreur si le token n'est pas un entier non signé
         printf("Erreur : Entier non signé attendu dans la déclaration de label\n");
         Erreur(NUM_ERR);
@@ -1542,7 +1547,6 @@ void procedure_or_function_declaration() {
         procedure_declaration();
     } else if (SYM.CODE == FUNCTION_TOKEN) {
         function_declaration();
-        printf("d'apres procedure or function declaration on a \n");
         printf(SYM.NOM);
 
     }
@@ -1561,11 +1565,28 @@ void procedure_heading() {
         Sym_Suiv(); // Consommer le point-virgule
     } else if (SYM.CODE == PO_TOKEN) {
         Sym_Suiv(); // Consommer la parenthèse gauche
+
         formal_parameter_section();
+
         while (SYM.CODE == PV_TOKEN) {
             Sym_Suiv(); // Consommer le point-virgule
             formal_parameter_section();
         }
+        Test_Symbole(PF_TOKEN, PF_ERR);
+    }
+            Sym_Suiv(); // Consommer la parenthèse gauche
+
+}
+void procedure_or_function_calling() {
+    //Test_Symbole(ID_TOKEN, ID_ERR);
+    if (SYM.CODE == PO_TOKEN) {
+        Sym_Suiv(); // Consommer la parenthèse gauche
+
+        Test_Symbole(ID_TOKEN, ID_ERR);
+            while (SYM.CODE == VIR_TOKEN) {
+                Sym_Suiv(); // Consommer la virgule
+                Test_Symbole(ID_TOKEN, ID_ERR);
+            }
         Test_Symbole(PF_TOKEN, PF_ERR);
     }
 }
@@ -1582,6 +1603,7 @@ void formal_parameter_section() {
     Test_Symbole(TP_TOKEN, TP_ERR);
     //Test_Symbole(TYPE_TOKEN, TYPE_ERR);
     type();
+
 }
 
 void function_declaration() {
@@ -1616,7 +1638,6 @@ void function_heading() {
 //===================== INSTS ==========================
 void INSTS()
 {
-    printf("dans la fonction mais je suis dans insts\n");
     // Vérifier si le prochain jeton est "begin"
     if (SYM.CODE == BEGIN_TOKEN)
     {
@@ -1631,7 +1652,6 @@ void INSTS()
         {
             // Consommer le point-virgule
             Sym_Suiv();
-printf("je suis dans le while de insts\n");
             // Appeler la fonction pour analyser l'instruction suivante
             INST();
         }
@@ -1640,11 +1660,8 @@ printf("je suis dans le while de insts\n");
         if (SYM.CODE == END_TOKEN)
         {
             // Consommer "end"
-            printf("jetrouve le end de insts\n");
 
             Sym_Suiv();
-            printf("apres \n");
-            printf(SYM.NOM);
 
 
 
@@ -1671,11 +1688,16 @@ void INST()
     switch (SYM.CODE)
     {
     case BEGIN_TOKEN:
+
         INSTS();
         break;
 
     case ID_TOKEN:
-        AFFEC();
+        Sym_Suiv();
+        if (SYM.CODE == AFF_TOKEN){
+        AFFEC();}
+        else{
+        procedure_or_function_calling();}
         break;
     case FUNCTION_TOKEN:
         procedure_and_function_declaration_part();
@@ -1705,7 +1727,7 @@ void INST()
 void AFFEC()
 {
     //ID := EXPR
-    Test_Symbole(ID_TOKEN, ID_ERR);
+   // Test_Symbole(ID_TOKEN, ID_ERR);
     Test_Symbole(AFF_TOKEN, AFF_ERR);
     EXPR();
 }
