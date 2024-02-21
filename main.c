@@ -1474,9 +1474,9 @@ void function_heading() {
     printf("in the function heading\n");
     Test_Symbole(FUNCTION_TOKEN, FUNCTION_ERR);
     Test_Symbole(ID_TOKEN, ID_ERR);
-    if (SYM.CODE == PV_TOKEN) {
-        Sym_Suiv(); // Consommer le point-virgule
-    } else if (SYM.CODE == PO_TOKEN) {
+
+    if (SYM.CODE == PV_TOKEN) { Sym_Suiv(); } // Consommer le point-virgule
+    else if (SYM.CODE == PO_TOKEN) {
         Sym_Suiv(); // Consommer la parenthèse gauche
         formal_parameter_section();
         while (SYM.CODE == PV_TOKEN) {
@@ -1488,7 +1488,7 @@ void function_heading() {
     Test_Symbole(TP_TOKEN, TP_ERR);
     // Test_Symbole(TYPE_TOKEN, TYPE_ERR);
    // printf("probleme ici ?");
-        type();
+    type();
 
     Test_Symbole(PV_TOKEN, PV_ERR); // Point-virgule
 }
@@ -1523,7 +1523,59 @@ void INSTS()
 }
 
 //===================== INST ==========================
-void INST()
+void INST(){
+    int exists = 0;
+    //INSTS | AFFEC | SI | TANTQUE | ECRIRE | LIRE | e
+    switch (SYM.CODE) {
+        case BEGIN_TOKEN:
+
+            INSTS();
+            break;
+
+        case ID_TOKEN: //usage d'un identifiant
+            //check si il a ete declare
+            exists = check_if_declared(SYM.NOM);
+            if(exists == 1){
+                Sym_Suiv();
+                if (SYM.CODE == AFF_TOKEN){ AFFEC();}
+                else{ procedure_or_function_calling();}
+                break;
+            }else{
+                printf("Erreur: cet identifiant n'a pas ete declare: %s, ligne %d", SYM.NOM, ligne_actuelle);
+                exit(1);
+            }
+
+        case FUNCTION_TOKEN:
+            procedure_and_function_declaration_part();
+            break;
+
+        case PROCEDURE_TOKEN:
+            procedure_and_function_declaration_part();
+            break;
+
+        case IF_TOKEN:
+            SI();
+            break;
+
+        case WHILE_TOKEN:
+            TANTQUE();
+            break;
+
+        case WRITE_TOKEN:
+            ECRIRE();
+            break;
+
+        case READ_TOKEN:
+            LIRE();
+            break;
+
+        default:
+            break;
+        }
+}
+
+// =================== INST_FCT =====================
+void INST_FCT()
 
 {
     //INSTS | AFFEC | SI | TANTQUE | ECRIRE | LIRE | e
@@ -1861,6 +1913,15 @@ void NTOP()
 }
 
 // ======================================= semantique ================================
+// regle 3: ts les symboles identifiants etre declares avant BEGIN
+int check_if_declared(char* idf_nom){
+    for(int i=0; i < TIDFS_indice; i++){
+        if (strcmp(TAB_IDFS[i].NOM, idf_nom) == 0) {
+                return 1;
+        }
+    }
+    return 0;
+}
 //regle 2: pas de double declaration
 void double_declaration(char* idf_nom, TSYM idf_code){
     int exist = 0;
@@ -1877,6 +1938,7 @@ void double_declaration(char* idf_nom, TSYM idf_code){
         TIDFS_indice++;
     } else {
         printf("Erreur: double declaration de %s, ligne %d\n", idf_nom, ligne_actuelle);
+        exit(1);
     }
 }
 
