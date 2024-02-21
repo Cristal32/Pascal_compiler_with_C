@@ -174,6 +174,28 @@ void variant();
 void case_label_list();
 void case_label();
 void set_type();
+void unsigned_constant();
+void function_designator();
+void function_identifier();
+void set();
+void element_list();
+void element();
+void procedure_statement();
+void procedure_identifier();
+void actual_parameter();
+void goto_statement();
+void empty_statement();
+void empty();
+void structured_statement();
+void compound_statement();
+void conditional_statement();
+void if_statement();
+void case_statement();
+void case_list_element();
+void case_label_list();
+void repetitive_statement();
+void while_statement();
+
 
 // functions definition
 // ================================== Lire_Car() : read the next character ==================================
@@ -1334,6 +1356,229 @@ void pointer_type() {
         exit(1);
     }
 }
+
+//=================unsigned constant=========================
+// Implémentation de la production <unsigned constant>
+void unsigned_constant() {
+    if (SYM.CODE == NUM_TOKEN) {
+        // Si le token est un nombre ou un strng, c'est une constante nonsignée
+        unsigned_number();
+    } else if(SYM.CODE == STRING_TOKEN){
+        string();
+    }
+    else if (SYM.CODE == CONST_TOKEN){
+        constant_identifier();
+    }
+    else {
+        // Gérer une erreur si le token n'est pas un signe ou un nombre
+        printf("Erreur : Ce n'est pas une constante non signée\n");
+        exit(1);
+    }
+    Sym_Suiv();
+}
+
+//=================function designator=========================
+// Implémentation de la production <function designator>
+void function_designator() {
+    if (SYM.CODE == ID_TOKEN) {
+        function_identifier();
+        Sym_Suiv();
+        if(SYM.CODE == PO_TOKEN){
+            Sym_Suiv();
+            actual_parameter();
+            while(SYM.CODE != PF_TOKEN && SYM.CODE == VIR_TOKEN){
+                Sym_Suiv();//consommer la virgule
+                actual_parameter();
+                Sym_Suiv();
+            }
+        }
+        else if(SYM.CODE == PV_TOKEN){
+            Sym_Suiv();
+        }
+    } 
+    else {
+
+        printf("Erreur liée à function designator\n");
+        exit(1);
+    }
+}
+
+//===================== function_identifier ==========================
+void function_identifier() {
+    // Vérifier si le prochain jeton est un identifiant
+    if (SYM.CODE == ID_TOKEN) {
+        // Consommer l'identifiant
+        Sym_Suiv();
+    } else {
+        // Si le prochain jeton n'est pas un identifiant, signaler une erreur
+        printf("Erreur : Identifiant de fonction attendu\n");
+        Erreur(ID_ERR);
+    }
+}
+//===================== set ==========================
+// Implémentation de la production <set>
+void set() {
+    if (SYM.CODE == CROCHETO_TOKEN) {
+        Sym_Suiv();
+        while (SYM.CODE != CROCHETF_TOKEN) {
+            element_list();
+            Sym_Suiv(); 
+        }
+    }
+    else {
+        printf("Erreur liée à l'implémentation de set")
+    }
+}
+
+//===================== element_list ==========================
+// Implémentation de la production <element_list>
+void element_list() {
+            element();
+            Sym_Suiv();
+        // Tant qu'on trouve des virgules, continuons d'analyser les elements
+            while (SYM.CODE == VIR_TOKEN) {
+                Sym_Suiv(); // Consommer la virgule
+                element(); // Analyser l'element
+        }
+        // Vérifier le point-virgule final
+        if (SYM.CODE != PV_TOKEN) {
+            printf("Erreur : Point-virgule attendu après la définition de liste des elements\n");
+            exit(1);
+        }
+       Sym_Suiv(); // Consommer le point-virgule final
+    }
+    else {
+        printf("erreur liée à liste des élements")
+    }
+}
+
+
+//===================== element ==========================
+// Implémentation de la production <element>
+void element() {
+        expression();
+        Sym_Suiv();
+        if(SYM.CODE == DOTDOT_TOKEN){
+            Sym_Suiv();
+            expression();
+        }else if(SYM.CODE == PV_TOKEN){
+            break;
+        }
+        else {
+        printf("erreur liée à l'element")
+       }
+}
+
+//=================procedure identifier=========================
+// Implémentation de la production <procedure identifier>
+void procedure_identifier() {
+    if (SYM.CODE == ID_TOKEN ) {
+        // Si le token est un ID, c'est un identifiant d'une constante
+        Sym_Suiv();
+    } else {
+        // Gérer une erreur si le token n'est pas un signe ou un nombre
+        printf("Erreur : Ce n'est pas un identifiant d'une fonction\n");
+        exit(1);
+    }
+}
+
+//=============procedure statement===============================
+// Implémentation de la production <procedure statement>
+void procedure_statement() {
+    if (SYM.CODE == ID_TOKEN) {
+        procedure_identifier();
+        Sym_Suiv();
+        if(SYM.CODE == PO_TOKEN){
+            Sym_Suiv();
+            actual_parameter();
+            while(SYM.CODE != PF_TOKEN && SYM.CODE == VIR_TOKEN){
+                Sym_Suiv();//consommer la virgule
+                actual_parameter();
+                Sym_Suiv();
+            }
+        }
+        else if(SYM.CODE == PV_TOKEN){
+            Sym_Suiv();
+        }
+    } 
+    else {
+
+        printf("Erreur liée à procedure statement\n");
+        exit(1);
+    }
+}
+
+//=============actual parameter===========
+// Implémentation de la production <actual parameter>
+void actual_parameter() {
+    if (SYM.CODE == §§§§§§) {
+         expression();}
+    else if(SYM.CODE == VAR_TOKEN){
+         Sym_Suiv();
+         variable();}
+    else if(SYM.CODE == ID_TOKEN){
+         procedure_identifier();
+         }
+    else {
+
+        printf("Erreur liée à procedure statement\n");
+        exit(1);
+    }
+}
+
+//=================goto statement=========================
+// Implémentation de la production <goto statement>
+void goto_statement() {
+    if (SYM.CODE == GOTO_TOKEN) {
+        // Si le token est un goto, on va le consommer
+        Sym_Suiv();
+        label();
+    } else {
+        printf("Erreur liée à goto statement\n");
+        exit(1);
+    }
+}
+
+//=================conditionnal statement=========================
+// Implémentation de la production <conditionnal statement>
+void conditionnal_statement() {
+    if (SYM.CODE == IF_TOKEN) {
+        // Si le token est un goto, on va le consommer
+        Sym_Suiv();
+        if_statement();
+    }else if(SYM.CODE == CASE_TOKEN){
+        Sym_Suiv();
+        case_statement();
+    }
+    else {
+        printf("Erreur liée à goto statement\n");
+        exit(1);
+    }
+}
+
+//===================== case_label_list ==========================
+// Implémentation de la production <case_label_list>
+void case_label_list() {
+            case_label();
+            Sym_Suiv();
+        // Tant qu'on trouve des virgules, continuons d'analyser les elements
+            while (SYM.CODE == VIR_TOKEN) {
+                Sym_Suiv(); // Consommer la virgule
+                case_label();
+                Sym_Suiv(); //
+        }
+        // Vérifier le point-virgule final
+        if (SYM.CODE != PV_TOKEN) {
+            printf("Erreur : Point-virgule attendu après la définition de liste des elements\n");
+            exit(1);
+        }
+       Sym_Suiv(); // Consommer le point-virgule final
+    }
+    else {
+        printf("erreur liée à liste des cas")
+    }
+}
+
 //===================== main ==========================
 
 /*
@@ -1354,8 +1599,6 @@ int is_simple_type() {
     // Vérifier si le type est un type simple
     return SYM.CODE == SCALAR_TOKEN || SYM.CODE == SUBRANGE_TOKEN || SYM.CODE == ID_TOKEN;
 }*/
-
-
 int main()
 {
     fichier = fopen("program.p", "r");
