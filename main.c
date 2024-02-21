@@ -587,11 +587,12 @@ void constant_definition_part() {
 // Fonction pour analyser une définition de constante
 void constant_definition() {
     if (SYM.CODE == ID_TOKEN) {
-            // l'identifiant de la constante est ajoute dans la table d'identifiants
-            strncpy(TAB_IDFS[TIDFS_indice].NOM, SYM.NOM, sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1);
-            TAB_IDFS[TIDFS_indice].NOM[sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1] = '\0';
-            TAB_IDFS[TIDFS_indice].TIDF = TCONST;
-            TIDFS_indice++;
+
+            // l'identifiant de la variable est ajoute dans la table d'identifiants---------
+            //first, check if this identifier already exists
+            illegal_program_name(SYM.NOM);
+            double_declaration(SYM.NOM, TCONST);
+            // ---------------------- fin partie table d'identifiants / semantique ---------------------
 
             Sym_Suiv(); // Consommer le token identifiant
 
@@ -853,31 +854,25 @@ void type() {
     }
 }
 
-
 //===================== simple_type ==========================
-
-
 void simple_type() {
     // Vérifier si le type est un type scalaire, un type de plage ou un identifiant de type
-    if (SYM.CODE == PO_TOKEN) {
-        scalar_type();
-    } else if (SYM.CODE == NUM_TOKEN) {
-        subrange_type();
-    } else if (SYM.CODE == ID_TOKEN) {
-        type_identifier();
-    } else {
+    if (SYM.CODE == PO_TOKEN) { scalar_type(); }
+    else if (SYM.CODE == NUM_TOKEN) { subrange_type(); }
+    else if (SYM.CODE == ID_TOKEN) { type_identifier(); }
+    else {
         // Si aucun des cas ci-dessus n'est vrai, signaler une erreur
         printf("Erreur : Type scalaire, de plage ou identifiant de type attendu\n");
         Erreur(TYPE_ERR);
     }
 }
+
 //===================== field_identifier ==========================
 
 void field_identifier() {
     // Vérifier si le jeton actuel est un identifiant
     if (SYM.CODE == ID_TOKEN) {
         // Récupérer l'identifiant et effectuer toute autre action nécessaire
-        // Ici, vous pouvez copier l'identifiant dans une variable ou effectuer d'autres traitements
         // Passer au jeton suivant
         Sym_Suiv();
     } else {
@@ -905,10 +900,8 @@ void scalar_type() {
 
 void variable_identifier() {
     // Vérifier si le jeton actuel est un identifiant
-    if (SYM.CODE == ID_TOKEN) {
-        // Consommer l'identifiant en passant au jeton suivant
-        Sym_Suiv();
-    } else {
+    if (SYM.CODE == ID_TOKEN) { Sym_Suiv(); } // Consommer l'identifiant en passant au jeton suivant
+    else {
         Erreur(ID_ERR); // Utilisation de la fonction Erreur pour signaler l'erreur
 
         // Si le jeton actuel n'est pas un identifiant, signaler une erreur
@@ -919,15 +912,14 @@ void variable_identifier() {
 //===================== subrange_type ==========================
 void subrange_type() {
     // Appeler la fonction de constante
-
     constant();
+    Sym_Suiv();
 
-
-                Sym_Suiv();
     // Vérifier si le prochain jeton est ".."
     if (SYM.CODE == DOTDOT_TOKEN) {
         // Consommer ".."
         Sym_Suiv();
+
         // Appeler la fonction de constante
         constant();
     } else {
@@ -939,10 +931,8 @@ void subrange_type() {
 //===================== type_identifier ==========================
 void type_identifier() {
     // Vérifier si le prochain jeton est un identifiant
-    if (SYM.CODE == ID_TOKEN) {
-        // Consommer l'identifiant
-        Sym_Suiv();
-    } else {
+    if (SYM.CODE == ID_TOKEN) { Sym_Suiv(); } // Consommer l'identifiant
+    else {
         // Si le prochain jeton n'est pas un identifiant, signaler une erreur
         printf("Erreur : Identifiant de type attendu\n");
         Erreur(ID_ERR);
@@ -951,15 +941,11 @@ void type_identifier() {
 //===================== structured_type ==========================
 void structured_type() {
     // Vérifier si le type est un type tableau, un type enregistrement, un ensemble ou un fichier
-    if (SYM.CODE == ARRAY_TOKEN) {
-        array_type();
-    } else if (SYM.CODE == RECORD_TOKEN) {
-        record_type();
-    } else if (SYM.CODE == SETOF_TOKEN) {
-        set_type();
-    } else if (SYM.CODE == FILEOF_TOKEN) {
-        file_type();
-    } else {
+    if (SYM.CODE == ARRAY_TOKEN) { array_type();}
+    else if (SYM.CODE == RECORD_TOKEN) { record_type(); }
+    else if (SYM.CODE == SETOF_TOKEN) { set_type(); }
+    else if (SYM.CODE == FILEOF_TOKEN) { file_type(); }
+    else {
         // Si aucun des cas ci-dessus n'est vrai, signaler une erreur
         printf("Erreur : Type structuré attendu\n");
         Erreur(TYPE_ERR);
@@ -985,15 +971,14 @@ void array_type() {
             while (SYM.CODE == VIR_TOKEN) {
                 // Consommer ","
                 Sym_Suiv();
+
                 // Appeler la fonction de type d'index
                 index_type();
             }
 
             // Vérifier si le prochain jeton est "]"
-            if (SYM.CODE == CROCHETF_TOKEN) {
-                // Consommer "]"
-                Sym_Suiv();
-            } else {
+            if (SYM.CODE == CROCHETF_TOKEN) { Sym_Suiv(); } // Consommer "]"
+            else {
                 // Si le prochain jeton n'est pas "]", signaler une erreur
                 printf("Erreur : Symbole ']' attendu\n");
                 Erreur(CROCHETF_ERR);
@@ -1003,6 +988,7 @@ void array_type() {
             if (SYM.CODE == OF_TOKEN) {
                 // Consommer "of"
                 Sym_Suiv();
+
                 // Appeler la fonction du type de composant
                 component_type();
             } else {
@@ -1027,11 +1013,13 @@ void index_type() {
     // Appeler la fonction de type simple
     simple_type();
 }
+
 //===================== component_type ==========================
 void component_type() {
     // Appeler la fonction de type
     type();
 }
+
 //===================== record_type ==========================
 void record_type() {
     // Vérifier si le prochain jeton est "record"
@@ -1043,13 +1031,11 @@ void record_type() {
         field_list();
 
         // Vérifier si le prochain jeton est "end"
-        if (SYM.CODE == END_TOKEN) {
-            // Consommer "end"
-            Sym_Suiv();
-        } else {
+        if (SYM.CODE == END_TOKEN) { Sym_Suiv(); } // Consommer "end"
+        else {
             // Si le prochain jeton n'est pas "end", signaler une erreur
             printf("Erreur : Mot-clé 'end' attendu\n");
-        Erreur(END_ERR);
+            Erreur(END_ERR);
         }
     } else {
         // Si le prochain jeton n'est pas "record", signaler une erreur
@@ -1057,6 +1043,7 @@ void record_type() {
         Erreur(RECORD_ERR);
     }
 }
+
 //===================== field_list ==========================
 void field_list() {
     // Appeler la fonction de partie fixe
@@ -1071,13 +1058,8 @@ void field_list() {
         if (SYM.CODE == CASE_TOKEN || SYM.CODE == ID_TOKEN) {
             // Appeler la partie suivante (peut être une partie fixe ou une partie variante)
             Sym_Suiv();
-            if (SYM.CODE == CASE_TOKEN) {
-                // Appeler la fonction de partie variante
-                variant_part();
-            } else {
-                // Si ce n'est pas la partie variante, c'est une autre partie fixe
-                field_list();
-            }
+            if (SYM.CODE == CASE_TOKEN) { variant_part(); } // Appeler la fonction de partie variante
+            else { field_list(); } // Si ce n'est pas la partie variante, c'est une autre partie fixe
         }
     }
 }
@@ -1309,11 +1291,8 @@ void variable_declaration_part() {
     // Tant que nous trouvons un identifiant (nom de variable), lire et traiter les déclarations de variables
     while (SYM.CODE == ID_TOKEN) {
 
-            // l'identifiant de la variable est ajoute dans la table d'identifiants
-            strncpy(TAB_IDFS[TIDFS_indice].NOM, SYM.NOM, sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1);
-            TAB_IDFS[TIDFS_indice].NOM[sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1] = '\0';
-            TAB_IDFS[TIDFS_indice].TIDF = TVAR;
-            TIDFS_indice++;
+            illegal_program_name(SYM.NOM);
+            double_declaration(SYM.NOM, TVAR);
 
             // Appeler la fonction de déclaration de variable
             variable_declaration();
@@ -1341,11 +1320,11 @@ void variable_declaration() {
         // Consommer la virgule
         Sym_Suiv();
 
-        // l'identifiant de la variable est ajoute dans la table d'identifiants
-        strncpy(TAB_IDFS[TIDFS_indice].NOM, SYM.NOM, sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1);
-        TAB_IDFS[TIDFS_indice].NOM[sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1] = '\0';
-        TAB_IDFS[TIDFS_indice].TIDF = TVAR;
-        TIDFS_indice++;
+        // l'identifiant de la variable est ajoute dans la table d'identifiants -----------------------
+        //first, check if this identifier already exists
+        illegal_program_name(SYM.NOM);
+        double_declaration(SYM.NOM, TVAR);
+        // --------------------------- fin partie semantique ------------------------------------
 
         // Appeler la fonction de l'identifiant de variable
         variable_identifier();
@@ -1531,32 +1510,16 @@ void INSTS()
         {
             // Consommer le point-virgule
             Sym_Suiv();
+
             // Appeler la fonction pour analyser l'instruction suivante
             INST();
         }
 
         // Vérifier si le prochain jeton est "end"
-        if (SYM.CODE == END_TOKEN)
-        {
-            // Consommer "end"
-
-            Sym_Suiv();
-
-
-
-
-        }
-        else
-        {
-            // Si le prochain jeton n'est pas "end", signaler une erreur
-            Erreur(END_ERR);
-        }
+        if (SYM.CODE == END_TOKEN) { Sym_Suiv(); } // Consommer "end"
+        else { Erreur(END_ERR); } // Si le prochain jeton n'est pas "end", signaler une erreur
     }
-    else
-    {
-        // Si le prochain jeton n'est pas "begin", signaler une erreur
-        Erreur(BEGIN_ERR);
-    }
+    else { Erreur(BEGIN_ERR); } // Si le prochain jeton n'est pas "begin", signaler une erreur
 }
 
 //===================== INST ==========================
@@ -1894,6 +1857,34 @@ void NTOP()
     default:
         Erreur(ERREUR_ERR);
         break;
+    }
+}
+
+// ======================================= semantique ================================
+//regle 2: pas de double declaration
+void double_declaration(char* idf_nom, TSYM idf_code){
+    int exist = 0;
+    for(int i=0; i < TIDFS_indice; i++){
+        if (strcmp(TAB_IDFS[i].NOM, idf_nom) == 0) {
+                exist = 1;
+                break;
+        }
+    }
+    if(exist == 0){
+        strncpy(TAB_IDFS[TIDFS_indice].NOM, idf_nom, sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1);
+        TAB_IDFS[TIDFS_indice].NOM[sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1] = '\0';
+        TAB_IDFS[TIDFS_indice].TIDF = idf_code;
+        TIDFS_indice++;
+    } else {
+        printf("Erreur: double declaration de %s, ligne %d\n", idf_nom, ligne_actuelle);
+    }
+}
+
+//regle 5: pas de declaration avec le nom du programme
+void illegal_program_name(char* idf_nom){
+    if(TAB_IDFS[0].NOM != NULL && stricmp(idf_nom, TAB_IDFS[0].NOM) == 0){
+        printf("Erreur: Declaration illegale: interdit de declarer une variable avec le nom du programme %s, ligne %d\n", idf_nom, ligne_actuelle);
+        exit (1);
     }
 }
 

@@ -7,11 +7,8 @@ const
     MAX = 100;
     PI = 3;
 
-type
-    MyType = integer;
-
 var
-    num1, num2: integer;
+    num1, num1, num3: integer;
 procedure DisplayMessage(msg: string);
 begin
     writeln(msg);
