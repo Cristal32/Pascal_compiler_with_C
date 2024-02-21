@@ -1354,7 +1354,10 @@ void procedure_or_function_declaration() {
 void procedure_declaration() {
     procedure_heading();
     BLOCK();
+    Test_Symbole(END_TOKEN, END_ERR); // Fin de procédure
+    Test_Symbole(SEMICOLON_TOKEN, SEMICOLON_ERR); // Point-virgule
 }
+
 
 void procedure_heading() {
     Test_Symbole(PROCEDURE_TOKEN, PROCEDURE_ERR);
@@ -1388,8 +1391,9 @@ void formal_parameter_section() {
 void function_declaration() {
     function_heading();
     BLOCK();
+    Test_Symbole(END_TOKEN, END_ERR); // Fin de fonction
+    Test_Symbole(SEMICOLON_TOKEN, SEMICOLON_ERR); // Point-virgule
 }
-
 void function_heading() {
     Test_Symbole(FUNCTION_TOKEN, FUNCTION_ERR);
     Test_Symbole(ID_TOKEN, ID_ERR);
