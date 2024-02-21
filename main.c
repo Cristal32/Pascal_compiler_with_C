@@ -1602,8 +1602,13 @@ void procedure_or_function_calling() {
     //Test_Symbole(ID_TOKEN, ID_ERR);
     if (SYM.CODE == PO_TOKEN) {
         Sym_Suiv(); // Consommer la parenthèse gauche
-
-        Test_Symbole(ID_TOKEN, ID_ERR);
+        printf("on a consomme ( \n");
+        //Test_Symbole(ID_TOKEN, ID_ERR);
+        if (SYM.CODE == ID_TOKEN||SYM.CODE == FLOAT_TOKEN||SYM.CODE == NUM_TOKEN){
+            Sym_Suiv(); // Consommer la parenthèse gauche
+        }else if(SYM.CODE == QUOTE_TOKEN){
+            string();
+        }
             while (SYM.CODE == VIR_TOKEN) {
                 Sym_Suiv(); // Consommer la virgule
                 Test_Symbole(ID_TOKEN, ID_ERR);
