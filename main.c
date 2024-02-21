@@ -1361,7 +1361,7 @@ void pointer_type() {
 // Implémentation de la production <unsigned constant>
 void unsigned_constant() {
     if (SYM.CODE == NUM_TOKEN) {
-        // Si le token est un nombre ou un strng, c'est une constante nonsignée
+        // Si le token est un nombre, c'est une constante nonsignée
         unsigned_number();
     } else if(SYM.CODE == STRING_TOKEN){
         string();
@@ -1386,18 +1386,25 @@ void function_designator() {
         if(SYM.CODE == PO_TOKEN){
             Sym_Suiv();
             actual_parameter();
-            while(SYM.CODE != PF_TOKEN && SYM.CODE == VIR_TOKEN){
+            Sym_Suiv();
+            while(SYM.CODE == VIR_TOKEN){
                 Sym_Suiv();//consommer la virgule
                 actual_parameter();
-                Sym_Suiv();
             }
-        }
-        else if(SYM.CODE == PV_TOKEN){
+        if(SYM.CODE == PF_TOKEN){
             Sym_Suiv();
+        }else{
+             printf("Erreur : Symbole ')' attendu\n");
+            Erreur(PF_ERR);
         }
-    } 
+    }else{ printf("Erreur : Mot-clé '(' attendu\n");
+                Erreur(PO_ERR);
+ }
+    if(SYM.CODE == PV_TOKEN){
+        break;
+    }
+    }
     else {
-
         printf("Erreur liée à function designator\n");
         exit(1);
     }
@@ -1422,7 +1429,6 @@ void set() {
         Sym_Suiv();
         while (SYM.CODE != CROCHETF_TOKEN) {
             element_list();
-            Sym_Suiv(); 
         }
     }
     else {
@@ -1491,18 +1497,22 @@ void procedure_statement() {
         if(SYM.CODE == PO_TOKEN){
             Sym_Suiv();
             actual_parameter();
-            while(SYM.CODE != PF_TOKEN && SYM.CODE == VIR_TOKEN){
+            Sym_Suiv
+            while(SYM.CODE == VIR_TOKEN){
                 Sym_Suiv();//consommer la virgule
                 actual_parameter();
-                Sym_Suiv();
             }
-        }
-        else if(SYM.CODE == PV_TOKEN){
+            if(SYM.CODE == PF_TOKEN){
             Sym_Suiv();
-        }
-    } 
-    else {
-
+            }else {
+             printf("Erreur : Symbole ')' attendu\n");
+            Erreur(CROCHETO_ERR);
+            }
+          } 
+            else if(SYM.CODE == PV_TOKEN){
+                break;
+            }
+    }else {
         printf("Erreur liée à procedure statement\n");
         exit(1);
     }
@@ -1536,6 +1546,41 @@ void goto_statement() {
     } else {
         printf("Erreur liée à goto statement\n");
         exit(1);
+    }
+}
+
+//===================== compound_statement ==========================
+// Implémentation de la production <compound_statement>
+void compound_statement() {
+          if(SYM.CODE == BEGIN_TOKEN){
+              Sym_Suiv();
+              statement();
+              Sym_Suiv();
+            while (SYM.CODE == PV_TOKEN) {
+                Sym_Suiv(); // Consommer le point-virgule
+                statement();
+            }
+            if(SYM.CODE == END_TOKEN){
+                Sym_Suiv();
+                } else {
+                // Si le prochain jeton n'est pas "end", signaler une erreur
+                printf("Erreur : Symbole 'end' attendu\n");
+                Erreur(END_ERR);
+            }
+             // Vérifier si le prochain jeton est ";"
+            if (SYM.CODE == PV_TOKEN) {
+                // Consommer ";"
+                Sym_Suiv();
+                break;
+            } else {
+                // Si le prochain jeton n'est pas ";", signaler une erreur
+                printf("Erreur : Mot-clé ';' attendu\n");
+                Erreur(PV_ERR);
+            }         
+        }else {
+        // Si le prochain jeton n'est pas "begin", signaler une erreur
+        printf("Erreur : Mot-clé 'begin' attendu\n");
+        Erreur(BEGIN_ERR);
     }
 }
 
