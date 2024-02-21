@@ -1,27 +1,21 @@
-program AnotherExample;
+program Factorial;
 
-const
-    MAX = 100;
-    PI = 3;
-type
-    MyType = integer;
-    RealArray = array [1..5] of real;
-    Point = record
-                x, y: real;
-            end;
-
-function CalculateArea(radius: real): real;
+function CalculateFactorial(n: integer): integer;
 begin
-    CalculateArea := PI * radius * radius;
+    if n <= 1 then
+        CalculateFactorial := 1
+    else
+        CalculateFactorial1 := n * 4;
 end;
 
-procedure DisplayMessage(message: string);
+var
+    num: integer;
 begin
-    writeln(message);
-end;
-
-begin
-    writeln('Max value:', MAX);
-    writeln('Area of circle with radius 5:', CalculateArea(5));
-    DisplayMessage('Hello, world!');
+    writeln('Entrez un entier positif : ');
+    readln(num);
+    
+    if num < 0 then
+        writeln('Erreur : Entrez un entier positif.')
+    else
+        writeln('Factorielle de ', num, ' est ');
 end.

@@ -245,6 +245,10 @@ void lire_mot()
     {
         SYM.CODE = IF_TOKEN;
     }
+    else if (stricmp(mot, "writeln") == 0)
+    {
+        SYM.CODE = WRITE_TOKEN;
+    }
      else if (stricmp(mot, "file") == 0)
     {
         SYM.CODE = FILE_TOKEN;
@@ -368,6 +372,7 @@ void lire_mot()
     strcpy(SYM.NOM, mot);
 }
 
+
 //===================== Lire_nombre ==========================
 void lire_nombre()
 {
@@ -391,6 +396,11 @@ void lire_nombre()
     // Stockage du nombre dans le jeton
     SYM.CODE = NUM_TOKEN;
     strcpy(SYM.NOM, nombre);
+}
+
+char Lire_Char() {
+    Car_Cour = fgetc(fichier);
+    return Car_Cour;
 }
 //===================== Sym_Suiv ==========================
 void Sym_Suiv()
@@ -618,6 +628,7 @@ void BLOCK()
     type_definition_part();//INSTS*
     variable_declaration_part();
     procedure_and_function_declaration_part();
+    INSTS();
    // statement_part();
 }
 //===================== label declaration part ==========================
@@ -661,6 +672,23 @@ void label() {
         Erreur(NUM_ERR);
     }
 }
+//===================== STRING ===========================
+/*
+void string() {
+    if (SYM.CODE == QUOTE_TOKEN) {
+        Sym_Suiv(); // Consommer le token "'"
+        char caractere = Lire_Char();
+        while (caractere != QUOTE_TOKEN) {
+            caractere = Lire_Car();
+        }
+        Sym_Suiv(); // Consommer le guillemet simple de fin de chaîne
+    } else {
+        // Gérer une erreur si la chaîne ne commence pas par un guillemet simple
+        printf("Erreur : Début de la chaîne de caractères attendu\n");
+        Erreur(QUOTE_ERR);
+    }
+}
+*/
 //===================== constant_definition_part ==========================
 
 // Implémentation de la production <constant definition part>
@@ -690,6 +718,8 @@ void constant_definition_part() {
     }
                // Sym_Suiv();
 }
+
+
 
 //===================== constant_definition ==========================
 // Fonction pour analyser une définition de constante
@@ -733,7 +763,10 @@ void constant() {
             printf("Erreur : Identifiant attendu après le signe dans la constante\n");
             Erreur(TP_ERR);
         }
-    } else {
+    }
+    else if (SYM.CODE == QUOTE_TOKEN) {
+        string();
+    }else {
         // Gérer une erreur si le token n'est pas une constante valide
         printf("Erreur : Constante invalide dans la définition de constante\n");
         Erreur(CONST_ERR);
@@ -830,6 +863,8 @@ void string() {
 
         while (SYM.CODE != QUOTE_TOKEN && SYM.CODE != FIN_TOKEN) {
             // Tant que nous n'avons pas rencontré une autre quote ou la fin du fichier, nous consommons les caractères de la chaîne de caractères
+            printf(SYM.NOM);
+            printf("\n");
             Sym_Suiv();
         }
 
@@ -853,14 +888,14 @@ void type_definition_part() {
         // Consommer le token "type"
         Sym_Suiv();
         // Analyser la définition du type
-                    printf("j'entre avant le while \n ");
+                  //  printf("j'entre avant le while \n ");
 
         type_definition();
 
         // Tant qu'on trouve des points-virgules et que le prochain symbole n'est pas une déclaration de procédure ou de fonction, analysons les définitions de type suivantes
         while (SYM.CODE == PV_TOKEN && SYM.CODE != PROCEDURE_TOKEN && SYM.CODE != FUNCTION_TOKEN) {
             Sym_Suiv(); // Consommer le point-virgule
-            printf("j'entre de while \n ");
+          //  printf("j'entre de while \n ");
             if (SYM.CODE != PROCEDURE_TOKEN && SYM.CODE != FUNCTION_TOKEN && SYM.CODE != LABEL_TOKEN && SYM.CODE != CONST_TOKEN && SYM.CODE != VAR_TOKEN){
             type_definition(); // Analyser la définition de type suivante
         }
@@ -924,12 +959,12 @@ void type() {
         // Appeler la fonction de type identifiant
         Sym_Suiv();
         // Vérifier si le jeton suivant est un point-virgule (PT_TOKEN)
-        if (SYM.CODE == PT_TOKEN) {
+        if (SYM.CODE == PV_TOKEN) {
             Sym_Suiv(); // Consommer le PT_TOKEN
         } else {
             // Si le jeton suivant n'est pas un point-virgule, signaler une erreur
             printf("Erreur : Symbole ';' attendu après l'identifiant\n");
-            Erreur(PT_ERR);
+            Erreur(PV_ERR);
         }
     } else if (SYM.CODE == ARRAY_TOKEN) {
         // Appeler la fonction de type tableau
@@ -1412,7 +1447,7 @@ void variable_declaration_part() {
         Sym_Suiv();
 
         // Appeler la fonction de déclaration de variable
-        variable_declaration();
+       // variable_declaration();
     }
 }
 //===================== variable_declaration ==========================
@@ -1430,18 +1465,25 @@ void variable_declaration() {
         variable_identifier();
     }
 
-    // Vérifier si le prochain jeton est ":"
+    // Vérifier si le prochain jeton est ";"
     if (SYM.CODE == TP_TOKEN) {
-        // Consommer ":"
+        // Consommer ";"
         Sym_Suiv();
 
         // Appeler la fonction du type
         type();
-    } else {
-        // Si le prochain jeton n'est pas ":", signaler une erreur
-        printf("Erreur : Symbole ':' attendu\n");
-        exit(1);
     }
+   /* else if (SYM.CODE == PV_TOKEN) {
+        // Consommer ";"
+       // Sym_Suiv();
+
+        // Appeler la fonction du type
+       // type();
+    } else {
+        // Si le prochain jeton n'est pas ";", signaler une erreur
+        printf("Erreur : Symbole ';' ou ':' attendu\n");
+        exit(1);
+    }*/
 }
 //===================== file_type ==========================
 // Fonction pour le type de fichier
@@ -1557,11 +1599,371 @@ void function_heading() {
     }
     Test_Symbole(TP_TOKEN, TP_ERR);
     // Test_Symbole(TYPE_TOKEN, TYPE_ERR);
+   // printf("probleme ici ?");
         type();
 
     Test_Symbole(PV_TOKEN, PV_ERR); // Point-virgule
 }
 
+//===================== INSTS ==========================
+void INSTS()
+{
+    // Vérifier si le prochain jeton est "begin"
+    if (SYM.CODE == BEGIN_TOKEN)
+    {
+        // Consommer "begin"
+        Sym_Suiv();
+
+        // Appeler la fonction pour analyser la première instruction
+        INST();
+
+        // Tant que nous trouvons un point-virgule, lire d'autres instructions
+        while (SYM.CODE == PV_TOKEN)
+        {
+            // Consommer le point-virgule
+            Sym_Suiv();
+
+            // Appeler la fonction pour analyser l'instruction suivante
+            INST();
+        }
+
+        // Vérifier si le prochain jeton est "end"
+        if (SYM.CODE == END_TOKEN)
+        {
+            // Consommer "end"
+            Sym_Suiv();
+        }
+        else
+        {
+            // Si le prochain jeton n'est pas "end", signaler une erreur
+            Erreur(END_ERR);
+        }
+    }
+    else
+    {
+        // Si le prochain jeton n'est pas "begin", signaler une erreur
+        Erreur(BEGIN_ERR);
+    }
+}
+
+//===================== INST ==========================
+void INST()
+
+{
+    //INSTS | AFFEC | SI | TANTQUE | ECRIRE | LIRE | e
+    switch (SYM.CODE)
+    {
+    case BEGIN_TOKEN:
+        INSTS();
+        break;
+
+    case ID_TOKEN:
+        AFFEC();
+        break;
+    case FUNCTION_TOKEN:
+        procedure_and_function_declaration_part();
+        break;
+    case PROCEDURE_TOKEN:
+        procedure_and_function_declaration_part();
+        break;
+    case IF_TOKEN:
+        SI();
+        break;
+
+    case WHILE_TOKEN:
+        TANTQUE();
+        break;
+    case WRITE_TOKEN:
+        ECRIRE();
+        break;
+    case READ_TOKEN:
+        LIRE();
+        break;
+    default:
+        break;
+    }
+}
+
+//===================== AFFEC ==========================
+void AFFEC()
+{
+    //ID := EXPR
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    Test_Symbole(AFF_TOKEN, AFF_ERR);
+    EXPR();
+}
+
+/*void SI()
+{
+    Test_Symbole(IF_TOKEN, IF_ERR);
+    COND();
+    Test_Symbole(THEN_TOKEN, THEN_ERR);
+    INST();
+}
+*/
+
+//===================== TANTQUE ==========================
+void TANTQUE()
+{
+    Test_Symbole(WHILE_TOKEN, WHILE_ERR);
+    COND();
+    Test_Symbole(DO_TOKEN, DO_ERR);
+    INST();
+}
+
+//===================== ECRIRE ==========================
+void ECRIRE()
+{
+    Test_Symbole(WRITE_TOKEN, WRITE_ERR);
+    Test_Symbole(PO_TOKEN, PO_ERR);
+    if (SYM.CODE == QUOTE_TOKEN){
+        string();
+    }
+    else{
+    EXPR();
+
+    while (SYM.CODE == VIR_TOKEN)
+    {
+        Sym_Suiv();
+        EXPR();
+    }
+    }
+    Test_Symbole(PF_TOKEN, PF_ERR);
+}
+
+//===================== LIRE ==========================
+void LIRE()
+{
+    Test_Symbole(READ_TOKEN, READ_ERR);
+    Test_Symbole(PO_TOKEN, PO_ERR);
+    Test_Symbole(ID_TOKEN, ID_ERR);
+
+    while (SYM.CODE == VIR_TOKEN)
+    {
+        Sym_Suiv();
+        Test_Symbole(ID_TOKEN, ID_ERR);
+    }
+
+    Test_Symbole(PF_TOKEN, PF_ERR);
+}
+
+//===================== SI ==========================
+void SI()
+{
+    Test_Symbole(IF_TOKEN, IF_ERR);
+    COND();
+    Test_Symbole(THEN_TOKEN, THEN_ERR);
+    INST();
+    //Test_Symbole(ID_TOKEN, ID_ERR);
+    switch (SYM.CODE)
+    {
+    case ELSE_TOKEN://à ajouter
+        Test_Symbole(ELSE_TOKEN, ELSE_ERR);
+        INST();
+        printf("fin de inst\n");
+        printf(SYM.NOM);
+        printf("\n");
+
+
+        break;
+    default:
+        Erreur(ERREUR_ERR);
+        break;
+}}
+
+//===================== REPETER ==========================
+void REPETER()
+{
+    Test_Symbole(REPEAT_TOKEN, REPEAT_ERR);//à AJOUTER
+    INST();
+    Test_Symbole(UNTIL_TOKEN, UNTIL_ERR);//à AJOUTER
+    COND();
+}
+
+//===================== POUR ==========================
+void POUR()
+{
+    Test_Symbole(FOR_TOKEN, FOR_ERR);//à AJOUTER
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    Test_Symbole(DO_TOKEN, DO_ERR);
+    AFFEC();
+    Test_Symbole(NUM_TOKEN, NUM_ERR);
+    NTOP();
+    Test_Symbole(NUM_TOKEN, NUM_ERR);
+    Test_Symbole(DO_TOKEN, DO_ERR);
+    INST();
+}
+
+//===================== CAS ==========================
+void CAS()
+{
+    Test_Symbole(CASE_TOKEN, CASE_ERR);//à AJOUTER
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    Test_Symbole(OF_TOKEN, OF_ERR);
+    Test_Symbole(NUM_TOKEN, NUM_ERR);
+    Test_Symbole(TP_TOKEN, TP_ERR);
+    INST();
+
+    while (SYM.CODE == NUM_TOKEN)
+    {
+        Sym_Suiv();
+        Test_Symbole(TP_TOKEN, TP_ERR);
+        INST();
+    }
+    switch (SYM.CODE)
+    {
+    case ELSE_TOKEN://à ajouter
+        Test_Symbole(ELSE_TOKEN, ELSE_ERR);
+        INST();
+        break;
+    default:
+        Erreur(ERREUR_ERR);
+        break;
+}
+    Test_Symbole(END_TOKEN, END_ERR);
+
+
+
+    Test_Symbole(PF_TOKEN, PF_ERR);
+    switch (SYM.CODE)
+    {
+/*    case INTO_TOKEN://à ajouter
+        Test_Symbole(INTO_TOKEN, INTO_ERR);
+        break;*/
+    case DOWNTO_TOKEN://à ajouter
+        Test_Symbole(DOWNTO_TOKEN, DOWNTO_ERR);
+        break;
+    default:
+        Erreur(ERREUR_ERR);
+        break;
+}
+
+}
+
+//===================== COND ==========================
+void COND()
+{
+    EXPR();
+    RELOP();
+    EXPR();
+}
+
+//===================== EXPR ==========================
+void EXPR()
+{
+    //TERM { ADDOP TERM }
+    TERM();
+
+    while (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN)
+    {
+        ADDOP();
+        TERM();
+    }
+}
+
+//===================== TERM ==========================
+void TERM()
+{
+    FACT();
+
+    while (SYM.CODE == MULT_TOKEN || SYM.CODE == DIV_TOKEN)
+    {
+        MULOP();
+        FACT();
+    }
+}
+
+//===================== FACT ==========================
+void FACT()
+{
+    switch (SYM.CODE)
+    {
+    case ID_TOKEN:
+        Test_Symbole(ID_TOKEN, ID_ERR);
+        break;
+    case NUM_TOKEN:
+        Test_Symbole(NUM_TOKEN, NUM_ERR);
+        break;
+    case PO_TOKEN:
+        Test_Symbole(PO_TOKEN, PO_ERR);
+        EXPR();
+        Test_Symbole(PF_TOKEN, PF_ERR);
+        break;
+    default:
+        Erreur(ERREUR_ERR);
+        break;
+    }
+}
+
+//===================== RELOP ==========================
+void RELOP()
+{
+    switch (SYM.CODE)
+    {
+    case EG_TOKEN:
+    case DIFF_TOKEN:
+    case INF_TOKEN:
+    case SUP_TOKEN:
+    case INFEG_TOKEN:
+    case SUPEG_TOKEN:
+        Test_Symbole(SYM.CODE, EG_ERR);
+        break;
+    default:
+        Erreur(ERREUR_ERR);
+        break;
+    }
+}
+
+//===================== ADDOP ==========================
+void ADDOP()
+{
+    switch (SYM.CODE)
+    {
+    case PLUS_TOKEN:
+        Test_Symbole(SYM.CODE, PLUS_ERR);
+        break;
+    case MOINS_TOKEN:
+        Test_Symbole(SYM.CODE, MOINS_ERR);
+        break;
+    default:
+        Erreur(ERREUR_ERR);
+        break;
+    }
+}
+
+//===================== MULOP ==========================
+void MULOP()
+{
+    switch (SYM.CODE)
+    {
+    case MULT_TOKEN:
+        Test_Symbole(SYM.CODE, MULT_ERR);
+        break;
+    case DIV_TOKEN:
+        Test_Symbole(SYM.CODE, DIV_ERR);
+        break;
+    default:
+        Erreur(ERREUR_ERR);
+        break;
+    }
+}
+
+//===================== NTOP ==========================
+void NTOP()
+{
+    switch (SYM.CODE)
+    {
+/*    case INTO_TOKEN:
+        Test_Symbole(SYM.CODE,INTO_ERR);
+        break;*/
+    case DOWNTO_TOKEN:
+        Test_Symbole(SYM.CODE, DOWNTO_ERR);
+        break;
+    default:
+        Erreur(ERREUR_ERR);
+        break;
+    }
+}
 
 //===================== main ==========================
 
@@ -1602,7 +2004,7 @@ int main()
 
     printf("Program execution completed.\n");
 
-    if (SYM.CODE == FIN_TOKEN)
+    if (SYM.CODE == PT_TOKEN)
     {
         printf("BRAVO de main: le programme est correcte on arrive a la fin !!!\n");
     }
