@@ -16,11 +16,13 @@ var
 begin
     day := Monday;
     writeln('Day: ', day);
-
+    p.x := 10;
+    p.y := 20;
+    writeln('Point: (', pi.x, ', ', p.y, ')');
 
     for i := 1 to 10 do
     begin
-        arr[item] := i * 2;
+        arr[i] := i * 2;
     end;
 
     writeln('Array:');

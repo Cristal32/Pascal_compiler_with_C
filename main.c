@@ -1732,8 +1732,11 @@ void INST()
 
     case ID_TOKEN:
         Sym_Suiv();
-        
-         if (SYM.CODE == CROCHETO_TOKEN){
+        if (SYM.CODE == PT_TOKEN){
+        Sym_Suiv();
+        Test_Symbole(ID_TOKEN, ID_ERR);
+    }
+        if (SYM.CODE == CROCHETO_TOKEN){
         Sym_Suiv();
         Test_Symbole(ID_TOKEN, ID_ERR);
         Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
@@ -1846,6 +1849,10 @@ void LIRE()
         Sym_Suiv();
         Test_Symbole(ID_TOKEN, ID_ERR);
         Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
+    }
+    else if (SYM.CODE== PT_TOKEN){
+        Sym_Suiv();
+        Test_Symbole(ID_TOKEN, ID_ERR);
     }
 
     Test_Symbole(PF_TOKEN, PF_ERR);
@@ -2003,6 +2010,9 @@ void FACT()
         Sym_Suiv();
         Test_Symbole(ID_TOKEN, ID_ERR);
         Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
+    }else if (SYM.CODE== PT_TOKEN){
+        Sym_Suiv();
+        Test_Symbole(ID_TOKEN, ID_ERR);
     }
         break;
     case NUM_TOKEN:
