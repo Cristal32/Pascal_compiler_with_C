@@ -1,29 +1,32 @@
-program Example;
+program Test;
 
 label
-  100, 200, 300;
+    start;
 
 const
-  MAX = 1000; 
+    MAX = 100;
+    PI = 3;
 
 type
-  MyType = integer; 
-  MyArrayType = array [1..10] of integer; 
-  MyRecordType = record
-                  field1: integer;
-                  field2: string;
-                end; 
+    MyType = integer;
 
-procedure MyProcedure;
+var
+    num1, num2: integer;
+procedure DisplayMessage(msg: string);
 begin
-  { Code de la procédure }
+    writeln(msg);
 end;
 
-function MyFunction: integer;
+
+function Add(a, b: integer): integer;
 begin
-  { Code de la fonction }
+    Add := a + b;
 end;
 
+
 begin
-  { Corps du programme }
+    num1 := 10;
+    num2 := 20;
+
+    writeln('La somme de ', num1, ' et ', num2, ' est ');
 end.
