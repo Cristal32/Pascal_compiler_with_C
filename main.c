@@ -1755,6 +1755,7 @@ void AFFEC()
     //ID := EXPR
    // Test_Symbole(ID_TOKEN, ID_ERR);
     Test_Symbole(AFF_TOKEN, AFF_ERR);
+
     EXPR();
 }
 
@@ -1956,6 +1957,9 @@ void FACT()
     {
     case ID_TOKEN:
         Test_Symbole(ID_TOKEN, ID_ERR);
+        if (SYM.CODE== PO_TOKEN){
+            procedure_or_function_calling();
+        }
         break;
     case NUM_TOKEN:
         Test_Symbole(NUM_TOKEN, NUM_ERR);
