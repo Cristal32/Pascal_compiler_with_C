@@ -1600,7 +1600,38 @@ void conditionnal_statement() {
         exit(1);
     }
 }
-
+//===================== if_statement ==========================
+// Implémentation de la production <if_statement>
+void if_statement() {
+          if(SYM.CODE == IF_TOKEN){
+              Sym_Suiv();
+              expression();
+              Sym_Suiv();
+            if (SYM.CODE == THEN_TOKEN) {
+                Sym_Suiv(); // Consommer le point-virgule
+                statement();
+                Sym_Suiv();
+                if (SYM.CODE == PV_TOKEN) {
+                // Consommer ";"
+                Sym_Suiv();
+                break;
+            }   else if(SYM.CODE == ELSE_TOKEN){
+                Sym_Suiv(); // Consommer le point-virgule
+                statement();
+                
+            }
+            } else {
+            // Si le prochain jeton n'est pas "[then", signaler une erreur
+            printf("Erreur : Symbole 'then' attendu\n");
+            Erreur(THEN_ERR);
+        }
+                
+        }else {
+        // Si le prochain jeton n'est pas "if", signaler une erreur
+        printf("Erreur : Mot-clé 'if' attendu\n");
+        Erreur(IF_ERR);
+    }
+}
 //===================== case_label_list ==========================
 // Implémentation de la production <case_label_list>
 void case_label_list() {
