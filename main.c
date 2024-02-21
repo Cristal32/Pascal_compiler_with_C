@@ -374,29 +374,46 @@ void lire_mot()
 
 
 //===================== Lire_nombre ==========================
-void lire_nombre()
-{
+void lire_nombre() {
     char nombre[11];
     int indice = 0;
+    int hasDecimal = 0; // Variable pour indiquer si le nombre contient un point décimal
 
     // Lecture du premier chiffre
     nombre[indice++] = Car_Cour;
     Lire_Car();
 
     // Lecture des chiffres suivants
-    while (isdigit(Car_Cour))
-    {
+    while (isdigit(Car_Cour) || Car_Cour == '.') {
+        if (Car_Cour == '.') {
+            // Vérifier s'il y a déjà un point décimal
+            if (hasDecimal) {
+                // Gérer l'erreur (deux points décimaux dans le nombre)
+                // Vous pouvez ajuster cette partie selon la logique de gestion d'erreur que vous souhaitez
+                // Par exemple, afficher un message d'erreur et sortir de la fonction
+                printf("Erreur: Nombre mal formé\n");
+                return;
+            }
+            hasDecimal = 1; // Indiquer que le nombre contient un point décimal
+        }
+
         nombre[indice++] = Car_Cour;
         Lire_Car();
     }
 
-    // Ajout du caract�re de fin de cha�ne
+    // Ajout du caractère de fin de chaîne
     nombre[indice] = '\0';
 
     // Stockage du nombre dans le jeton
-    SYM.CODE = NUM_TOKEN;
+    if (hasDecimal) {
+        SYM.CODE = FLOAT_TOKEN;
+    } else {
+        SYM.CODE = NUM_TOKEN;
+    }
+
     strcpy(SYM.NOM, nombre);
 }
+
 
 char Lire_Char() {
     Car_Cour = fgetc(fichier);
@@ -736,7 +753,7 @@ void constant_definition() {
         if (SYM.CODE == EG_TOKEN) {
             Sym_Suiv(); // Consommer le token "="
             // Vérifier si la constante est une valeur directe
-            if (SYM.CODE == NUM_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == CHAR_TOKEN) {
+            if (SYM.CODE == NUM_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == FLOAT_TOKEN ) {
                 Sym_Suiv(); // Consommer la constante directe
             } else {
                 // Si ce n'est pas une constante directe, analyser la constante associée
@@ -1444,16 +1461,20 @@ void variable_declaration_part() {
     // Consommer "var"
     Sym_Suiv();
 
-    // Appeler la fonction de déclaration de variable
-    variable_declaration();
+    // Tant que nous trouvons un identifiant (nom de variable), lire et traiter les déclarations de variables
+    while (SYM.CODE == ID_TOKEN) {
+        // Appeler la fonction de déclaration de variable
+        variable_declaration();
 
-    // Tant que nous trouvons un point-virgule, lire d'autres déclarations de variables
-    while (SYM.CODE == PV_TOKEN) {
+        // Vérifier si nous avons atteint la fin des déclarations de variables
+        if (SYM.CODE != PV_TOKEN) {
+            // Si le prochain symbole n'est pas un point-virgule, cela signifie qu'il n'y a plus de variables à déclarer
+            // Donc nous pouvons sortir de la boucle
+            break;
+        }
+
         // Consommer le point-virgule
         Sym_Suiv();
-
-        // Appeler la fonction de déclaration de variable
-       // variable_declaration();
     }
 }
 //===================== variable_declaration ==========================
@@ -1472,9 +1493,9 @@ void variable_declaration() {
         variable_identifier();
     }
 
-    // Vérifier si le prochain jeton est ";"
+    // Vérifier si le prochain jeton est ":"
     if (SYM.CODE == TP_TOKEN) {
-        // Consommer ";"
+        // Consommer ":"
         Sym_Suiv();
 
         // Appeler la fonction du type
@@ -1933,6 +1954,9 @@ void FACT()
         break;
     case NUM_TOKEN:
         Test_Symbole(NUM_TOKEN, NUM_ERR);
+        break;
+        case FLOAT_TOKEN:
+        Test_Symbole(FLOAT_TOKEN, FLOAT_ERR);
         break;
     case PO_TOKEN:
         Test_Symbole(PO_TOKEN, PO_ERR);
