@@ -120,12 +120,73 @@ typedef enum {TPROG, TCONST, TVAR} TSYM;
 typedef struct {
     char NOM[20];
     TSYM TIDF;
+     int ADRESSE;
 } T_TAB_IDF;
-
+int OFFSET;
 T_TAB_IDF TAB_IDFS[100];
 int TIDFS_indice = 0;
 
-// =======================================================================================
+// ========================================P-code==============================================
+
+#define TAILLEMEM 1000
+#define TAILLECODE 1000
+
+typedef enum {
+    ADD, SUB, MUL, DIV, EQL, NEQ, GTR, LSS, GEQ, LEQ,
+    PRN, INN, INT, LDI, LDA, LDV, STO, BRN, BZE, HLT
+} MNEMONIQUES;
+
+typedef struct {
+    MNEMONIQUES MNE;
+    int SUITE;
+} INSTRUCTION;
+
+int MEM[TAILLEMEM];
+int SP;
+INSTRUCTION PCODE[TAILLECODE];
+int PC;
+
+void GENERER1(MNEMONIQUES M) {
+    if (PC == TAILLECODE) {
+        ERREUR();
+    }
+
+    PC++;
+    PCODE[PC].MNE = M;
+}
+
+// Fonction pour generer 2
+void GENERER2(MNEMONIQUES M, int A) {
+    if (PC == TAILLECODE) {
+        ERREUR();
+    }
+
+    PC++;
+    PCODE[PC].MNE = M;
+    PCODE[PC].SUITE = A;
+}
+// debut programme
+
+void PROGRAM_code() {
+    TESTE(PROGRAM_TOKEN, PROGRAM_ERR);
+    TESTE_ET_ENTRE(ID_TOKEN, ID_ERR);
+    TEST(PV_TOKEN, PV_ERR);
+
+    BLOCK();
+
+    GENERER1(HLT);
+
+    TESTE_ET_ENTRE(PT_TOKEN, PT_ERR);
+}
+//===================== Génération de code pour Une affectation==========================
+
+}
+//-----------------------------------------------------------------------------
+// Procedure syntaxique de la règle:
+// ECRIRE ::= write ( EXPR { , EXPR } )
+//-----------------------------------------------------------------------------
+
+//===================== ==========================
 int ligne_actuelle = 1;
 
 FILE *fichier;
@@ -1551,6 +1612,7 @@ void INST(){
                 }
                 if (SYM.CODE == AFF_TOKEN){
                         is_constant_affectee(SYM.NOM);
+                        GENERER2(LDA,TAB_IDFS[i].ADRESSE);
                         AFFEC();}
                 else{ procedure_or_function_calling();}
                 break;
@@ -1600,6 +1662,7 @@ void AFFEC()
    // Test_Symbole(ID_TOKEN, ID_ERR);
     Test_Symbole(AFF_TOKEN, AFF_ERR);
     EXPR();
+    GENERER1(STO);
 }
 
 /*void SI()
@@ -1784,6 +1847,7 @@ void EXPR()
     {
         ADDOP();
         TERM();
+        GENERER1(OP);
     }
 }
 
@@ -1796,6 +1860,7 @@ void TERM()
     {
         MULOP();
         FACT();
+        GENERER1(OP);
     }
 }
 
@@ -1806,6 +1871,8 @@ void FACT()
     {
     case ID_TOKEN:
         Test_Symbole(ID_TOKEN, ID_ERR);
+        GENERER2(LDA, TABSYM[IND_DER_SYM_ACC].ADRESSE);
+        GENERER1(LDV);
         if (SYM.CODE == PO_TOKEN){ procedure_or_function_calling(); }
         else if (SYM.CODE == CROCHETO_TOKEN){
                 Sym_Suiv();
@@ -1818,6 +1885,7 @@ void FACT()
             break;
     case NUM_TOKEN:
         Test_Symbole(NUM_TOKEN, NUM_ERR);
+        GENERER2(LDI, VAL);
         break;
         case FLOAT_TOKEN:
         Test_Symbole(FLOAT_TOKEN, FLOAT_ERR);
