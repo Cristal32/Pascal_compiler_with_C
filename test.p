@@ -13,6 +13,7 @@ type
         x, y: integer;
     end;
 
+
 {*this is a comment*}
     IntArray = array [1 ..10] of integer;
 
@@ -33,14 +34,19 @@ function Add(a, b: integer): integer;
 {*num4: integer;*}
 begin
     Add := a + b;
+DisplayMessage('bonjour');
 end;
-
 
 begin
     Start;
-    num1 := 10;
+    num1 := 10;;
     num2 := 20;
     goto Start;
+
+   {*if num1 > 5 then
+	begin
+	writeln('num1');
+	end*}
     
    for i := 1 to 10 do
     begin
