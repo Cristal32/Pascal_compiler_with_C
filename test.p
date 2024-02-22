@@ -6,7 +6,6 @@ label
 const
     MAX = 100;
     PI = 3;
-
 var
     num1, num2, num3: integer;
 
@@ -17,8 +16,9 @@ end;
 
 
 function Add(a, b: integer): integer;
+{*num4: integer;*}
 var
-   Add: integer;
+    Add:integer;
 begin
     Add := a + b;
 end;

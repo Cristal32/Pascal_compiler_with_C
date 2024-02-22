@@ -256,28 +256,18 @@ char Lire_Char() {
 //===================== Sym_Suiv ==========================
 void Sym_Suiv()
 {
-    while (Car_Cour == ' ' || Car_Cour == '\n' || Car_Cour == '\t')
-    {
-        Lire_Car();
-    }
-    if (isalpha(Car_Cour))
-    {
-        lire_mot();
-    }
-    else if (isdigit(Car_Cour))
-    {
-        lire_nombre();
-    }
+    while (Car_Cour == ' ' || Car_Cour == '\n' || Car_Cour == '\t') { Lire_Car(); }
+    if (isalpha(Car_Cour)) { lire_mot(); }
+    else if (isdigit(Car_Cour)) { lire_nombre(); }
     else
     {
         switch (Car_Cour)
         {
         case ';':
             SYM.CODE = PV_TOKEN;
+            strcpy(SYM.NOM, "pt_virgule");
             Lire_Car();
             break;
-
-
 
         case '+':
             SYM.CODE = PLUS_TOKEN;
@@ -315,23 +305,43 @@ void Sym_Suiv()
                 break;
 
             case '{':
-                Lire_Car();
-                if (Car_Cour == '*') {
-                    SYM.CODE = COMMENTO_TOKEN;
-                    Lire_Car();
-                } else {
-                    SYM.CODE = CBO_TOKEN;
+                Lire_Car(); // Move past the opening curly brace
+                if (Car_Cour == '*')
+                {
+                    //printf("we found '{*'\n");
+                    // Skip characters until the end of the comment is found
+                    while (Car_Cour != EOF)
+                    {
+                        Lire_Car();
+                        if (Car_Cour == '*')
+                        {
+                            // Move past the closing curly brace
+                            Lire_Car();
+                            if(Car_Cour == '}'){
+                                    //printf("we found '*}'\n");
+                                    SYM.CODE = COMMENTF_TOKEN;
+                                    Lire_Car();
+                                    break;
+                            }
+                        }
+                    }
+                    Sym_Suiv();
+                }else
+                {
+                    // If it's not a comment, treat it as a regular symbol
+                    SYM.CODE = CBO_TOKEN; // Or any appropriate code for an opening curly brace
                 }
+                Lire_Car();
                 break;
             case '.':
-    Lire_Car();
-    if (Car_Cour == '.') {
-        SYM.CODE = DOTDOT_TOKEN;
-        Lire_Car(); // Consommer le deuxième point
-    } else {
-        SYM.CODE = PT_TOKEN;
-    }
-    break;
+                Lire_Car();
+                if (Car_Cour == '.') {
+                    SYM.CODE = DOTDOT_TOKEN;
+                    Lire_Car(); // Consommer le deuxième point
+                } else {
+                    SYM.CODE = PT_TOKEN;
+                }
+                break;
             case ',':
                 SYM.CODE = VIR_TOKEN;
                 Lire_Car();
@@ -1300,6 +1310,7 @@ void variable_declaration_part() {
             if (SYM.CODE != PV_TOKEN) {
                 // Si le prochain symbole n'est pas un point-virgule, cela signifie qu'il n'y a plus de variables à déclarer
                 // Donc nous pouvons sortir de la boucle
+                //printf("pas de point virgule detecte\n");
                 break;
             }
 
@@ -1327,15 +1338,18 @@ void variable_declaration() {
 
         // Appeler la fonction de l'identifiant de variable
         variable_identifier();
+        //printf("%s est identifie\n", SYM.NOM);
     }
 
     // Vérifier si le prochain jeton est ":"
     if (SYM.CODE == TP_TOKEN) {
+            //printf("':' est identifie\n");
         // Consommer ":"
         Sym_Suiv();
 
         // Appeler la fonction du type
         type();
+        //printf("le type est identifie\n");
     }
    /* else if (SYM.CODE == PV_TOKEN) {
         // Consommer ";"
