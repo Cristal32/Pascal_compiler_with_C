@@ -301,6 +301,71 @@ void lire_nombre()
 }
 
 // ==================================================================== SYNTAXIQUE ====================================================================
+//===================== ECRIRE ==========================
+void ECRIRE()
+{
+    Test_Symbole(WRITE_TOKEN, WRITE_ERR);
+    Test_Symbole(PO_TOKEN, PO_ERR);
+    if (SYM.CODE == QUOTE_TOKEN){
+        string();
+    }
+    else{
+    EXPR();
+    GENERER2(LDA, TABSYM[IND_DER_SYM_ACC].ADRESSE);
+    GENERER1(LDV);
+    }
+    while (SYM.CODE == VIR_TOKEN)
+    {
+        Sym_Suiv();
+if (SYM.CODE == QUOTE_TOKEN){
+        string();
+    }
+    else{
+    EXPR();
+    GENERER2(LDA, TABSYM[IND_DER_SYM_ACC].ADRESSE);
+    GENERER1(LDV);    }
+    }
+    Test_Symbole(PF_TOKEN, PF_ERR);
+    // Ajouter du code pour afficher le p-code généré pour cette instruction
+    printf("=== P-Code de la définition de constante ===\n");
+    printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+    printf("LDI %d\n", SYM.VAL);
+    printf("PRN\n");
+    printf("===========================================\n");
+}
+//===================== LIRE ==========================
+void LIRE()
+{
+    Test_Symbole(READ_TOKEN, READ_ERR);
+    Test_Symbole(PO_TOKEN, PO_ERR);
+    if (SYM.CODE == QUOTE_TOKEN){
+        string();
+        GENERER1(STO);
+    }
+    else{
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    GENERER1(STO);
+    }
+    while (SYM.CODE == VIR_TOKEN)
+    {
+        Sym_Suiv();
+  if (SYM.CODE == QUOTE_TOKEN){
+        string();
+        GENERER1(STO);
+    }
+    else{
+    Test_Symbole(ID_TOKEN, ID_ERR);
+    GENERER1(STO);
+    }    }
+
+    Test_Symbole(PF_TOKEN, PF_ERR);
+    // Ajouter du code pour afficher le p-code généré pour cette instruction
+    printf("=== P-Code de la définition de constante ===\n");
+    printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+    printf("INN %d\n");
+    printf("STO\n");
+    printf("===========================================\n");
+}
 
 // ================================== Sym_Suiv() ==================================
 // Manage the next symbol to a specific symbol. ex: var x = 5; '=' is the next symbol to 'x'
