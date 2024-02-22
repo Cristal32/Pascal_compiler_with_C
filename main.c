@@ -732,8 +732,8 @@ void string() {
 
         while (SYM.CODE != QUOTE_TOKEN && SYM.CODE != FIN_TOKEN) {
             // Tant que nous n'avons pas rencontré une autre quote ou la fin du fichier, nous consommons les caractères de la chaîne de caractères
-            printf(SYM.NOM);
-            printf("\n");
+            //printf(SYM.NOM);
+            //printf("\n");
             Sym_Suiv();
         }
 
@@ -799,8 +799,8 @@ void type_definition() {
 }
 //===================== type ==========================
 void type() {
-    printf(SYM.NOM);
-    printf("\n");
+    //printf(SYM.NOM);
+    //printf("\n");
     if (SYM.CODE == INTEGER_TOKEN || SYM.CODE == FLOAT_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == BOOL_TOKEN ||SYM.CODE == ID_TOKEN) {
         Sym_Suiv(); // Avance au prochain symbole après le type prédéfini
     }else if (SYM.CODE == PO_TOKEN) {
@@ -1404,7 +1404,7 @@ void procedure_or_function_declaration() {
         procedure_declaration();
     } else if (SYM.CODE == FUNCTION_TOKEN) {
         function_declaration();
-        printf(SYM.NOM);
+        //printf(SYM.NOM);
     }
 }
 
@@ -1437,7 +1437,7 @@ void procedure_or_function_calling() {
     if (SYM.CODE == PO_TOKEN) {
         Sym_Suiv(); // Consommer la parenthèse gauche
 
-        printf("on a consomme ( \n");
+        //printf("on a consomme ( \n");
         //Test_Symbole(ID_TOKEN, ID_ERR);
         if (SYM.CODE == ID_TOKEN||SYM.CODE == FLOAT_TOKEN||SYM.CODE == NUM_TOKEN){ Sym_Suiv(); } // Consommer la parenthèse gauche
         else if(SYM.CODE == QUOTE_TOKEN){ string(); }
@@ -1464,17 +1464,17 @@ void formal_parameter_section() {
 
         //Test_Symbole(TYPE_TOKEN, TYPE_ERR);
         type();
-    } else{ printf("\n pas de parametre  "); }
+    } // else{ printf("\n pas de parametre  "); }
 }
 
 void function_declaration() {
     function_heading();
     BLOCK();
-    printf("on a termine function_declaration \n");
+    //printf("on a termine function_declaration \n");
 }
 
 void function_heading() {
-    printf("in the function heading\n");
+    //printf("in the function heading\n");
     Test_Symbole(FUNCTION_TOKEN, FUNCTION_ERR);
     Test_Symbole(ID_TOKEN, ID_ERR);
 
@@ -1679,11 +1679,9 @@ void SI()
     case ELSE_TOKEN://à ajouter
         Test_Symbole(ELSE_TOKEN, ELSE_ERR);
         INST();
-        printf("fin de inst\n");
-        printf(SYM.NOM);
-        printf("\n");
-
-
+        //printf("fin de inst\n");
+        //printf(SYM.NOM);
+        //printf("\n");
         break;
     default:
         Erreur(ERREUR_ERR);
@@ -1705,16 +1703,16 @@ void POUR()
     Test_Symbole(FOR_TOKEN, FOR_ERR);//à AJOUTER
     Test_Symbole(ID_TOKEN, ID_ERR);
     Test_Symbole(AFF_TOKEN, AFF_ERR);
-    printf("\n pas de prob dans := \n");
+    //printf("\n pas de prob dans := \n");
 
     FACT();
-    printf("\n pas de prob dans fact \n");
+    //printf("\n pas de prob dans fact \n");
 
     Test_Symbole(TO_TOKEN, TO_ERR);
-    printf("\n pas de prob dans to \n");
+    //printf("\n pas de prob dans to \n");
 
     FACT();
-    printf("\n pas de prob dans fact2 \n");
+    //printf("\n pas de prob dans fact2 \n");
 
     Test_Symbole(DO_TOKEN, DO_ERR);
     INST();
@@ -1996,10 +1994,10 @@ int main()
     if (SYM.CODE == PT_TOKEN)
     {
         printf("BRAVO de main: le programme est correcte on arrive a la fin !!!\n");
-        printf("Contenu de TAB_IDFS :\n");
+        /*printf("Contenu de TAB_IDFS :\n");
         for (int i = 0; i < TIDFS_indice; i++) {
             printf("Indice %d : %s\n", i, TAB_IDFS[i].NOM);
-        }
+        }*/
     }
     else
     {
