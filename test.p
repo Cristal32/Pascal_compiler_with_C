@@ -6,8 +6,19 @@ label
 const
     MAX = 100;
     PI = 3;
+
+type
+    DayOfWeek = (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday);
+    Point = record
+        x, y: integer;
+    end;
+
+{*this is a comment*}
+    IntArray = array [1 ..10] of integer;
+
 var
     num1, num2: integer;
+    arr: intArray;
 
 procedure DisplayMessage(msg: string);
 var
@@ -26,9 +37,15 @@ end;
 
 
 begin
+    Start;
     num1 := 10;
     num2 := 20;
     goto Start;
-    Start;
+    
+   for i := 1 to 10 do
+    begin
+        arr[i] := i * 2;
+    end;
+
     writeln('La somme de ', num1, ' et ', num2, ' est ');
 end.

@@ -129,7 +129,9 @@ int TIDFS_indice = 0;
 // =====================================================================================
 //============================================= pour p-Code==================================
 // Définition des constantes
-#define TABLEINDEX 100 // Taille du tableau TABLESYM
+//============================================= pour p-Code==================================
+// Définition des constantes
+#define TABLEINDEX 1000 // Taille du tableau TABLESYM
 
 
 // Structure pour représenter un enregistrement dans TABLESYM
@@ -144,6 +146,8 @@ ENREGISTREMENT TABLESYM[TABLEINDEX];
 
 // Définition de la variable OFFSET
 int OFFSET;
+
+
 
 // Définition des constantes
 #define TAILLEMEM 100 // Taille du tableau MEM
@@ -223,24 +227,91 @@ int obtenir_adresse_constante() {
     return adresse_courante++;
 }
 // Fonction pour afficher le contenu du tableau PCODE
-void afficher_pcode() {
-    printf("=== P-Code ===\n");
+// Fonction pour afficher le contenu du tableau PCODE
+void afficher_contenu_pile() {
+    printf("Contenu de la pile :\n");
+    for (int i = 0; i < SP; i++) {
+        printf("%d ", MEM[i]);
+    }
+    printf("\n");
+
+    printf("Instructions du p-code :\n");
     for (int i = 1; i <= PC; i++) {
         switch (PCODE[i].MNE) {
             case ADD:
-                printf("%d: ADD\n", i);
+                printf("ADD\n");
                 break;
             case SUB:
-                printf("%d: SUB\n", i);
+                printf("SUB\n");
                 break;
-            // Ajoutez des cas pour d'autres mnémoniques selon vos besoins
+            case MUL:
+                printf("MUL\n");
+                break;
+            case DIV:
+                printf("DIV\n");
+                break;
+            case EQL:
+                printf("EQL\n");
+                break;
+            case NEQ:
+                printf("NEQ\n");
+                break;
+            case GTR:
+                printf("GTR\n");
+                break;
+            case LSS:
+                printf("LSS\n");
+                break;
+            case LEQ:
+                printf("LEQ\n");
+                break;
+            case GEQ:
+                printf("GEQ\n");
+                break;
+            case PRN:
+                printf("PRN\n");
+                break;
+            case INN:
+                printf("INN\n");
+                break;
+            case INT:
+                printf("INT\n");
+                break;
+            case BRN:
+                printf("BRN\n");
+                break;
+             case BZE:
+                printf("BZE\n");
+                break;
+             case HLT:
+                printf("HLT\n");
+                break;
+
+
+            // Ajoutez d'autres cas pour les autres mnémoniques selon vos besoins
+
+            case LDI:
+                printf("LDI %d\n", PCODE[i].SUITE);
+                break;
+            case LDA:
+                printf("LDA %d\n", PCODE[i].SUITE);
+                break;
+            case LDV:
+                printf("LDV %d\n", PCODE[i].SUITE);
+                break;
+            case STO:
+                printf("STO\n");
+                break;
+            // Ajoutez d'autres cas pour les mnémoniques avec un argument
+
             default:
-                printf("%d: MNEMONIQUE INCONNU\n", i);
+                printf("Instruction inconnue\n");
+                break;
         }
     }
-    printf("==============\n");
 }
 
+//===================================================================================
 // =======================================================================================
 int ligne_actuelle = 1;
 
@@ -572,6 +643,7 @@ void Test_Symbole(CODES cl, CODES_ERR COD_ERR)
 }
 
 //===================== PROGRAM ==========================
+//===================== PROGRAM ==========================
 void PROGRAM()
 {
     Test_Symbole(PROGRAM_TOKEN, PROGRAM_ERR);
@@ -586,6 +658,10 @@ void PROGRAM()
     Test_Symbole(PV_TOKEN, PV_ERR);
     BLOCK();
     GENERER1(HLT);
+      printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");
+
 
     //Test_Symbole(PT_TOKEN, PT_ERR);
     // Check for the dot after BLOCK
@@ -597,7 +673,7 @@ void PROGRAM()
     else
     {
         Erreur(PT_ERR);
-        printf("PAS BRAVO: fin de programme erron�e!!!!\n");
+        printf("PAS BRAVO: fin de programme erron e!!!!\n");
 
         // Add this line to consume symbols until the end of the file
         while (SYM.CODE != FIN_TOKEN)
@@ -719,35 +795,36 @@ void constant_definition_part() {
 
 //===================== constant_definition ==========================
 // Fonction pour analyser une définition de constante
+//===================== constant_definition ==========================
+// Fonction pour analyser une définition de constante
 void constant_definition() {
     if (SYM.CODE == ID_TOKEN) {
-
-            // ----------------- l'identifiant de la variable est ajoute dans la table d'identifiants---------
+            // l'identifiant de la variable est ajoute dans la table d'identifiants---------
             //first, check if this identifier already exists
             illegal_program_name(SYM.NOM);
             double_declaration(SYM.NOM, TCONST);
-
-            // ------------------------------------------ pcode ------------------------------------------
-            int adresse_constante = obtenir_adresse_constante();
+            // ---------------------- fin partie table d'identifiants / semantique ---------------------
+             int adresse_constante = obtenir_adresse_constante();
              TABLESYM[IND_DER_SYM_ACC].ADRESSE = adresse_constante;
 
-            // Après avoir obtenu l'adresse, générez le p-code pour cette constante
-            GENERER2(LDA, adresse_constante);
-            //GENERER2(LDA, TABLESYM[IND_DER_SYM_ACC++].ADRESSE);
-            // ------------------------------------------------------------------------------------
-
+        // Après avoir obtenu l'adresse, générez le p-code pour cette constante
+             GENERER2(LDA, adresse_constante);
+           //GENERER2(LDA, TABLESYM[IND_DER_SYM_ACC++].ADRESSE);
             Sym_Suiv(); // Consommer le token identifiant
 
             if (SYM.CODE == EG_TOKEN) {
                 Sym_Suiv(); // Consommer le token "="
                 // Vérifier si la constante est une valeur directe
                 if (SYM.CODE == NUM_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == FLOAT_TOKEN ) {
-                        GENERER2(LDI, SYM.VAL);
-                        GENERER1(STO);
-                        Sym_Suiv(); // Consommer la constante directe
+                    GENERER2(LDI, SYM.VAL);
+                    GENERER1(STO);
+                    Sym_Suiv(); // Consommer la constante directe
+
+
                 } else {
                     // Si ce n'est pas une constante directe, analyser la constante associée
                     constant(); // Analyser la constante associée
+
                 }
             } else {
                 // Gérer une erreur si le token suivant n'est pas "="
@@ -762,19 +839,22 @@ void constant_definition() {
        // Erreur(TP_ERR);
     }
     // Ajouter du code pour afficher le p-code généré pour cette instruction
-    printf("=== P-Code de la définition de constante ===\n");
+  /*  printf("=== P-Code de la définition de constante ===\n");
     printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
     printf("LDI %d\n", SYM.VAL);
     printf("STO\n");
-    printf("===========================================\n");
+    printf("===========================================\n");*/
+   /*/ printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");*/
 }
+//===================== constant ==========================
 //===================== constant ==========================
 // Fonction pour analyser une constante
 void constant() {
-    if (SYM.CODE == NUM_TOKEN || SYM.CODE ==  FLOAT_TOKEN) {
-        // Pas besoin de Sym_Suiv() ici
-        GENERER2(LDI, SYM.VAL);
-    } else if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN || SYM.CODE == ID_TOKEN || SYM.CODE == CHAR_TOKEN) {
+    if (SYM.CODE == NUM_TOKEN ||SYM.CODE == FLOAT_TOKEN ) {
+            GENERER2(LDI, SYM.VAL);
+    } else if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN||SYM.CODE == ID_TOKEN || SYM.CODE == CHAR_TOKEN) {
         // Pas besoin de Sym_Suiv() ici non plus
         if (SYM.CODE == ID_TOKEN) {
             // Pas besoin de Sym_Suiv() ici non plus
@@ -793,11 +873,15 @@ void constant() {
     }
     GENERER1(STO);
     // Ajouter du code pour afficher le p-code généré pour cette instruction
-    printf("=== P-Code de la définition de constante ===\n");
+   /* printf("=== P-Code de la définition de constante ===\n");
     printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
     printf("LDI %d\n", SYM.VAL);
     printf("STO\n");
-    printf("===========================================\n");
+    printf("===========================================\n");*/
+  /*  printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");*/
+
 }
 //===================== unsigned_number ==========================
 // Implémentation de la production <unsigned number>
@@ -1467,12 +1551,16 @@ void variable_declaration_part() {
     }
 }
 //===================== variable_declaration ==========================
+//==================
+
 // Fonction pour la déclaration de variable
 void variable_declaration() {
     // Appeler la fonction de l'identifiant de variable
     //printf("je suis dans variable_declaration \n");
     variable_identifier();
-
+            int adresse_constante = obtenir_adresse_constante();
+             TABLESYM[IND_DER_SYM_ACC].ADRESSE = adresse_constante;
+             GENERER2(LDA, adresse_constante);
     // Tant que nous trouvons une virgule, lire d'autres identifiants de variables
     while (SYM.CODE == VIR_TOKEN) {
         // Consommer la virgule
@@ -1484,7 +1572,7 @@ void variable_declaration() {
         double_declaration(SYM.NOM, TVAR);
         // --------------------------- fin partie semantique ------------------------------------
 
-        // Appeler la fonction de l'identifiant de variable
+         // Appeler la fonction de l'identifiant de variable
         variable_identifier();
         //printf("%s est identifie\n", SYM.NOM);
     }
@@ -1804,13 +1892,16 @@ void INST(){
 }
 
 
-//===================== AFFEC ==========================
 void AFFEC()
 {
     //ID := EXPR
    // Test_Symbole(ID_TOKEN, ID_ERR);
     Test_Symbole(AFF_TOKEN, AFF_ERR);
     EXPR();
+    GENERER1(STO);
+   /*   printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");*/
 }
 
 /*void SI()
@@ -1821,7 +1912,6 @@ void AFFEC()
     INST();
 }
 */
-
 //===================== TANTQUE ==========================
 void TANTQUE()
 {
@@ -1993,9 +2083,12 @@ void EXPR()
     {
         ADDOP();
         TERM();
+        GENERER1(ADD);
     }
+     /* printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");*/
 }
-
 //===================== TERM ==========================
 void TERM()
 {
@@ -2005,9 +2098,13 @@ void TERM()
     {
         MULOP();
         FACT();
+        GENERER1(MUL);
     }
+   /* printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");*/
 }
-
+//===================== FACT ==========================
 //===================== FACT ==========================
 void FACT()
 {
@@ -2015,6 +2112,11 @@ void FACT()
     {
     case ID_TOKEN:
         Test_Symbole(ID_TOKEN, ID_ERR);
+         int adresse_constante = obtenir_adresse_constante();
+         TABLESYM[IND_DER_SYM_ACC].ADRESSE = adresse_constante;
+
+        GENERER2(LDA, TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+        GENERER1(LDV);
         if (SYM.CODE == PO_TOKEN){ procedure_or_function_calling(); }
         else if (SYM.CODE == CROCHETO_TOKEN){
                 Sym_Suiv();
@@ -2027,9 +2129,11 @@ void FACT()
             break;
     case NUM_TOKEN:
         Test_Symbole(NUM_TOKEN, NUM_ERR);
+                GENERER2(LDI, SYM.VAL);
         break;
         case FLOAT_TOKEN:
         Test_Symbole(FLOAT_TOKEN, FLOAT_ERR);
+                GENERER2(LDI, SYM.VAL);
         break;
     case PO_TOKEN:
         Test_Symbole(PO_TOKEN, PO_ERR);
@@ -2040,8 +2144,10 @@ void FACT()
         Erreur(ERREUR_ERR);
         break;
     }
+  /*  printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");*/
 }
-
 //===================== RELOP ==========================
 void RELOP()
 {
