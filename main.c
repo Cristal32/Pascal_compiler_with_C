@@ -116,7 +116,7 @@ typedef struct
 Current_sym SYM;
 
 // ============================= table de symboles =====================================
-typedef enum {TPROG, TCONST, TVAR, TLABEL} TSYM;
+typedef enum {TPROG, TCONST, TVAR, TLABEL, TFCT, TPROC} TSYM;
 
 typedef struct {
     char NOM[20];
@@ -314,7 +314,6 @@ void lire_mot()
     else if (stricmp(mot, "in") == 0) { SYM.CODE = IN_TOKEN; }
     else if (stricmp(mot, "div") == 0) { SYM.CODE = DIVV_TOKEN; }
     else if (stricmp(mot, "mod") == 0) { SYM.CODE = MOD_TOKEN; }
-    else if (stricmp(mot, "goto") == 0) { SYM.CODE = GOTO_TOKEN; }
     else {
             SYM.CODE = ID_TOKEN;
             strcpy(SYM.NOM, mot);
@@ -1578,6 +1577,8 @@ void procedure_declaration() {
 
 void procedure_heading() {
     Test_Symbole(PROCEDURE_TOKEN, PROCEDURE_ERR);
+    illegal_program_name(SYM.NOM);
+    double_declaration(SYM.NOM, TPROC);
     Test_Symbole(ID_TOKEN, ID_ERR);
     if (SYM.CODE == PV_TOKEN) {
         Sym_Suiv(); // Consommer le point-virgule
@@ -1640,6 +1641,8 @@ void function_declaration() {
 void function_heading() {
     //printf("in the function heading\n");
     Test_Symbole(FUNCTION_TOKEN, FUNCTION_ERR);
+    illegal_program_name(SYM.NOM);
+    double_declaration(SYM.NOM, TFCT);
     Test_Symbole(ID_TOKEN, ID_ERR);
 
     if (SYM.CODE == PV_TOKEN) { Sym_Suiv(); } // Consommer le point-virgule
@@ -2202,10 +2205,10 @@ int main()
     if (SYM.CODE == PT_TOKEN)
     {
         printf("BRAVO de main: le programme est correcte on arrive a la fin !!!\n");
-        /*printf("Contenu de TAB_IDFS :\n");
+        printf("Contenu de TAB_IDFS :\n");
         for (int i = 0; i < TIDFS_indice; i++) {
             printf("Indice %d : %s\n", i, TAB_IDFS[i].NOM);
-        }*/
+        }
     }
     else
     {

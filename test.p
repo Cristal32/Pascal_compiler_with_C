@@ -20,8 +20,6 @@ end;
 
 function Add(a, b: integer): integer;
 {*num4: integer;*}
-var
-    Add:integer;
 begin
     Add := a + b;
 end;
