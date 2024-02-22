@@ -147,7 +147,7 @@ int OFFSET;
 typedef enum {
     ADD, SUB, MUL, DIV, EQL, NEQ, GTR,
     LSS, GEQ, LEQ, PRN, INN, INT, LDI, LDA,
-    LDV, STO, BRN, BZE, HLT
+    LDV, STO, BRN, BZE, HLT, OP
 } MNEMONIQUES;
 
 // Structure pour représenter une instruction
@@ -217,23 +217,61 @@ int obtenir_adresse_constante() {
     return adresse_courante++;
 }
 // Fonction pour afficher le contenu du tableau PCODE
-void afficher_pcode() {
-    printf("=== P-Code ===\n");
+// Fonction pour afficher le contenu du tableau PCODE
+void afficher_contenu_pile() {
+    printf("Contenu de la pile :\n");
+    for (int i = 0; i < SP; i++) {
+        printf("%d ", MEM[i]);
+    }
+    printf("\n");
+
+    printf("Instructions du p-code :\n");
     for (int i = 1; i <= PC; i++) {
         switch (PCODE[i].MNE) {
             case ADD:
-                printf("%d: ADD\n", i);
+                printf("ADD\n");
                 break;
             case SUB:
-                printf("%d: SUB\n", i);
+                printf("SUB\n");
                 break;
-            // Ajoutez des cas pour d'autres mnémoniques selon vos besoins
+            case MUL:
+                printf("MUL\n");
+                break;
+            case DIV:
+                printf("DIV\n");
+                break;
+            case EQL:
+                printf("EQL\n");
+                break;
+            case NEQ:
+                printf("NEQ\n");
+                break;
+            case GTR:
+                printf("GTR\n");
+                break;
+            // Ajoutez d'autres cas pour les autres mnémoniques selon vos besoins
+
+            case LDI:
+                printf("LDI %d\n", PCODE[i].SUITE);
+                break;
+            case LDA:
+                printf("LDA %d\n", PCODE[i].SUITE);
+                break;
+            case LDV:
+                printf("LDV %d\n", PCODE[i].SUITE);
+                break;
+            case STO:
+                printf("STO\n");
+                break;
+            // Ajoutez d'autres cas pour les mnémoniques avec un argument
+
             default:
-                printf("%d: MNEMONIQUE INCONNU\n", i);
+                printf("Instruction inconnue\n");
+                break;
         }
     }
-    printf("==============\n");
 }
+
 
 
 // ============================= table de symboles =====================================
@@ -754,11 +792,14 @@ void constant_definition() {
        // Erreur(TP_ERR);
     }
     // Ajouter du code pour afficher le p-code généré pour cette instruction
-    printf("=== P-Code de la définition de constante ===\n");
+  /*  printf("=== P-Code de la définition de constante ===\n");
     printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
     printf("LDI %d\n", SYM.VAL);
     printf("STO\n");
-    printf("===========================================\n");
+    printf("===========================================\n");*/
+    printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");
 }
 //===================== constant ==========================
 // Fonction pour analyser une constante
@@ -784,11 +825,14 @@ void constant() {
     }
     GENERER1(STO);
     // Ajouter du code pour afficher le p-code généré pour cette instruction
-    printf("=== P-Code de la définition de constante ===\n");
+   /* printf("=== P-Code de la définition de constante ===\n");
     printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
     printf("LDI %d\n", SYM.VAL);
     printf("STO\n");
-    printf("===========================================\n");
+    printf("===========================================\n");*/
+    printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");
 
 }
 //===================== unsigned_number ==========================
@@ -1740,6 +1784,9 @@ void INST(){
         default:
             break;
         }
+          printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");
 }
 
 
@@ -1750,6 +1797,10 @@ void AFFEC()
    // Test_Symbole(ID_TOKEN, ID_ERR);
     Test_Symbole(AFF_TOKEN, AFF_ERR);
     EXPR();
+    GENERER1(STO);
+      printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");
 }
 
 /*void SI()
@@ -1934,7 +1985,11 @@ void EXPR()
     {
         ADDOP();
         TERM();
+        GENERER1(ADD);
     }
+      printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");
 }
 
 //===================== TERM ==========================
@@ -1946,7 +2001,11 @@ void TERM()
     {
         MULOP();
         FACT();
+        GENERER1(MUL);
     }
+     printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");
 }
 
 //===================== FACT ==========================
@@ -1956,6 +2015,11 @@ void FACT()
     {
     case ID_TOKEN:
         Test_Symbole(ID_TOKEN, ID_ERR);
+         int adresse_constante = obtenir_adresse_constante();
+         TABLESYM[IND_DER_SYM_ACC].ADRESSE = adresse_constante;
+
+        GENERER2(LDA, TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+        GENERER1(LDV);
         if (SYM.CODE == PO_TOKEN){ procedure_or_function_calling(); }
         else if (SYM.CODE == CROCHETO_TOKEN){
                 Sym_Suiv();
@@ -1968,9 +2032,11 @@ void FACT()
             break;
     case NUM_TOKEN:
         Test_Symbole(NUM_TOKEN, NUM_ERR);
+                GENERER2(LDI, SYM.VAL);
         break;
         case FLOAT_TOKEN:
         Test_Symbole(FLOAT_TOKEN, FLOAT_ERR);
+                GENERER2(LDI, SYM.VAL);
         break;
     case PO_TOKEN:
         Test_Symbole(PO_TOKEN, PO_ERR);
@@ -1981,6 +2047,9 @@ void FACT()
         Erreur(ERREUR_ERR);
         break;
     }
+    printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");
 }
 
 //===================== RELOP ==========================
