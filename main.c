@@ -105,6 +105,7 @@ typedef enum
     INTEGER_ERR,
 } CODES_ERR;
 
+// ========================== current symbol =================================
 typedef struct
 {
     CODES CODE;
@@ -124,6 +125,121 @@ typedef struct {
 
 T_TAB_IDF TAB_IDFS[100];
 int TIDFS_indice = 0;
+
+// =====================================================================================
+//============================================= pour p-Code==================================
+// Définition des constantes
+#define TABLEINDEX 100 // Taille du tableau TABLESYM
+
+
+// Structure pour représenter un enregistrement dans TABLESYM
+typedef struct {
+    char NOM[50];
+    TSYM CLASSE;
+    int ADRESSE;
+} ENREGISTREMENT;
+
+// Définition du tableau TABLESYM
+ENREGISTREMENT TABLESYM[TABLEINDEX];
+
+// Définition de la variable OFFSET
+int OFFSET;
+
+// Définition des constantes
+#define TAILLEMEM 100 // Taille du tableau MEM
+#define TAILLECODE 100 // Taille du tableau PCODE
+
+// Définition des mnémoniques
+typedef enum {
+    ADD, SUB, MUL, DIV, EQL, NEQ, GTR,
+    LSS, GEQ, LEQ, PRN, INN, INT, LDI, LDA,
+    LDV, STO, BRN, BZE, HLT
+} MNEMONIQUES;
+
+// Structure pour représenter une instruction
+typedef struct {
+    MNEMONIQUES MNE;
+    int SUITE;
+} INSTRUCTION;
+
+// Définition des tableaux MEM et PCODE
+int MEM[TAILLEMEM];
+INSTRUCTION PCODE[TAILLECODE];
+
+// Définition des variables SP et PC
+int SP;
+int PC;
+
+// Fonction pour empiler sur la pile
+void push(int value) {
+    if (SP < TAILLEMEM) {
+        MEM[SP] = value;
+        SP++;
+    } else {
+        printf("Stack overflow!\n");
+    }
+}
+
+int pop() {
+    if (SP > 0) {
+        SP--;
+        return MEM[SP];
+    } else {
+        printf("Stack underflow!\n");
+        return 0;  // Vous pouvez ajuster cela en fonction de vos besoins
+    }
+}
+
+// Fonction pour générer une instruction
+void GENERER1(MNEMONIQUES M) {
+    // Vérifier si PC atteint la taille maximale
+    if (PC == TAILLECODE) {
+        printf("ERREUR : Tableau PCODE plein\n");
+        return;
+    }
+
+    // Incrémenter PC et affecter le mnémonique à PCODE
+    PC++;
+    PCODE[PC].MNE = M;
+}
+
+
+// Fonction pour générer une instruction avec un argument
+void GENERER2(MNEMONIQUES M, int A) {
+    // Vérifier si PC atteint la taille maximale
+    if (PC == TAILLECODE) {
+        printf("ERREUR : Tableau PCODE plein\n");
+        return;
+    }
+
+    // Incrémenter PC et affecter le mnémonique et l'argument à PCODE
+    PC++;
+    PCODE[PC].MNE = M;
+    PCODE[PC].SUITE = A;
+}
+int IND_DER_SYM_ACC = 0;
+int adresse_courante = 0;
+int obtenir_adresse_constante() {
+    return adresse_courante++;
+}
+// Fonction pour afficher le contenu du tableau PCODE
+void afficher_pcode() {
+    printf("=== P-Code ===\n");
+    for (int i = 1; i <= PC; i++) {
+        switch (PCODE[i].MNE) {
+            case ADD:
+                printf("%d: ADD\n", i);
+                break;
+            case SUB:
+                printf("%d: SUB\n", i);
+                break;
+            // Ajoutez des cas pour d'autres mnémoniques selon vos besoins
+            default:
+                printf("%d: MNEMONIQUE INCONNU\n", i);
+        }
+    }
+    printf("==============\n");
+}
 
 // =======================================================================================
 int ligne_actuelle = 1;
@@ -470,6 +586,7 @@ void PROGRAM()
     Test_Symbole(ID_TOKEN, ID_ERR);
     Test_Symbole(PV_TOKEN, PV_ERR);
     BLOCK();
+    GENERER1(HLT);
 
     //Test_Symbole(PT_TOKEN, PT_ERR);
     // Check for the dot after BLOCK
@@ -496,10 +613,13 @@ void PROGRAM()
 
 void BLOCK()
 {
+    OFFSET = 0;
     label_declaration_part();//consts();
     constant_definition_part();//VARS();
     type_definition_part();//INSTS*
     variable_declaration_part();
+    PCODE[0].MNE = INT;
+    PCODE[0].SUITE = OFFSET;
     procedure_and_function_declaration_part();
     INSTS();
    // statement_part();
@@ -603,11 +723,19 @@ void constant_definition_part() {
 void constant_definition() {
     if (SYM.CODE == ID_TOKEN) {
 
-            // l'identifiant de la variable est ajoute dans la table d'identifiants---------
+            // ----------------- l'identifiant de la variable est ajoute dans la table d'identifiants---------
             //first, check if this identifier already exists
             illegal_program_name(SYM.NOM);
             double_declaration(SYM.NOM, TCONST);
-            // ---------------------- fin partie table d'identifiants / semantique ---------------------
+
+            // ------------------------------------------ pcode ------------------------------------------
+            int adresse_constante = obtenir_adresse_constante();
+             TABLESYM[IND_DER_SYM_ACC].ADRESSE = adresse_constante;
+
+            // Après avoir obtenu l'adresse, générez le p-code pour cette constante
+            GENERER2(LDA, adresse_constante);
+            //GENERER2(LDA, TABLESYM[IND_DER_SYM_ACC++].ADRESSE);
+            // ------------------------------------------------------------------------------------
 
             Sym_Suiv(); // Consommer le token identifiant
 
@@ -615,7 +743,9 @@ void constant_definition() {
                 Sym_Suiv(); // Consommer le token "="
                 // Vérifier si la constante est une valeur directe
                 if (SYM.CODE == NUM_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == FLOAT_TOKEN ) {
-                    Sym_Suiv(); // Consommer la constante directe
+                        GENERER2(LDI, SYM.VAL);
+                        GENERER1(STO);
+                        Sym_Suiv(); // Consommer la constante directe
                 } else {
                     // Si ce n'est pas une constante directe, analyser la constante associée
                     constant(); // Analyser la constante associée
@@ -632,13 +762,20 @@ void constant_definition() {
        // printf("Erreur : Identifiant attendu dans la définition de constante\n");
        // Erreur(TP_ERR);
     }
+    // Ajouter du code pour afficher le p-code généré pour cette instruction
+    printf("=== P-Code de la définition de constante ===\n");
+    printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+    printf("LDI %d\n", SYM.VAL);
+    printf("STO\n");
+    printf("===========================================\n");
 }
 //===================== constant ==========================
 // Fonction pour analyser une constante
 void constant() {
-    if (SYM.CODE == NUM_TOKEN || SYM.CODE == ID_TOKEN || SYM.CODE == STRING_TOKEN) {
+    if (SYM.CODE == NUM_TOKEN || SYM.CODE ==  FLOAT_TOKEN) {
         // Pas besoin de Sym_Suiv() ici
-    } else if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN) {
+        GENERER2(LDI, SYM.VAL);
+    } else if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN || SYM.CODE == ID_TOKEN || SYM.CODE == CHAR_TOKEN) {
         // Pas besoin de Sym_Suiv() ici non plus
         if (SYM.CODE == ID_TOKEN) {
             // Pas besoin de Sym_Suiv() ici non plus
@@ -655,6 +792,13 @@ void constant() {
         printf("Erreur : Constante invalide dans la définition de constante\n");
         Erreur(CONST_ERR);
     }
+    GENERER1(STO);
+    // Ajouter du code pour afficher le p-code généré pour cette instruction
+    printf("=== P-Code de la définition de constante ===\n");
+    printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+    printf("LDI %d\n", SYM.VAL);
+    printf("STO\n");
+    printf("===========================================\n");
 }
 //===================== unsigned_number ==========================
 // Implémentation de la production <unsigned number>
@@ -2057,10 +2201,10 @@ int main()
     if (SYM.CODE == PT_TOKEN)
     {
         printf("BRAVO de main: le programme est correcte on arrive a la fin !!!\n");
-        printf("Contenu de TAB_IDFS :\n");
+        /*printf("Contenu de TAB_IDFS :\n");
         for (int i = 0; i < TIDFS_indice; i++) {
             printf("Indice %d : %s\n", i, TAB_IDFS[i].NOM);
-        }
+        }*/
     }
     else
     {
