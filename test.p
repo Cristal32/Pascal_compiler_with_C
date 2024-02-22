@@ -1,7 +1,7 @@
 program Test;
 
 label
-    start;
+    Start;
 
 const
     MAX = 100;
@@ -27,6 +27,7 @@ end;
 begin
     num1 := 10;
     num2 := 20;
-
+    goto Start;
+    Start;
     writeln('La somme de ', num1, ' et ', num2, ' est ');
 end.

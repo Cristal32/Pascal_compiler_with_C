@@ -115,7 +115,7 @@ typedef struct
 Current_sym SYM;
 
 // ============================= table de symboles =====================================
-typedef enum {TPROG, TCONST, TVAR} TSYM;
+typedef enum {TPROG, TCONST, TVAR, TLABEL} TSYM;
 
 typedef struct {
     char NOM[20];
@@ -198,7 +198,11 @@ void lire_mot()
     else if (stricmp(mot, "in") == 0) { SYM.CODE = IN_TOKEN; }
     else if (stricmp(mot, "div") == 0) { SYM.CODE = DIVV_TOKEN; }
     else if (stricmp(mot, "mod") == 0) { SYM.CODE = MOD_TOKEN; }
-    else { SYM.CODE = ID_TOKEN; }
+    else if (stricmp(mot, "goto") == 0) { SYM.CODE = GOTO_TOKEN; }
+    else {
+            SYM.CODE = ID_TOKEN;
+            strcpy(SYM.NOM, mot);
+    }
 
 
     // Stockage du mot dans le jeton
@@ -537,8 +541,9 @@ void label() {
         Sym_Suiv(); // Consommer le token NUM
     }
     if (SYM.CODE == ID_TOKEN) {
-        // Traitement du label
-        // Ici, vous pouvez stocker ou utiliser la valeur du label
+            illegal_program_name(SYM.NOM);
+            double_declaration(SYM.NOM, TLABEL);
+
         Sym_Suiv(); // Consommer le token NUM
     }  else {
         // Gérer une erreur si le token n'est pas un entier non signé
@@ -1516,6 +1521,7 @@ void INSTS()
     // Vérifier si le prochain jeton est "begin"
     if (SYM.CODE == BEGIN_TOKEN)
     {
+        int is_label = 0;
         // Consommer "begin"
         Sym_Suiv();
 
@@ -1528,6 +1534,23 @@ void INSTS()
             // Consommer le point-virgule
             Sym_Suiv();
 
+            //printf("current symbol is %s\n", SYM.NOM);
+
+            //if current symbol is a call to a label
+            int indice = 0;
+            int exist = 0;
+            for(int i=0; i < TIDFS_indice; i++){
+                if (strcmp(TAB_IDFS[i].NOM, SYM.NOM) == 0) {
+                        exist = 1;
+                        indice = i;
+                        break;
+                }
+            }
+            if(exist == 1 && TAB_IDFS[indice].TIDF == TLABEL){manage_label();}
+
+
+            if(SYM.CODE == GOTO_TOKEN){ fct_goto(); }
+
             // Appeler la fonction pour analyser l'instruction suivante
             INST();
         }
@@ -1537,6 +1560,32 @@ void INSTS()
         else { Erreur(END_ERR); } // Si le prochain jeton n'est pas "end", signaler une erreur
     }
     else { Erreur(BEGIN_ERR); } // Si le prochain jeton n'est pas "begin", signaler une erreur
+}
+
+void manage_label(){
+    //printf("%s est un label\n", SYM.NOM);
+    Sym_Suiv();
+    Test_Symbole(PV_TOKEN, PV_ERR);
+}
+
+void fct_goto(){
+    int declared = 0;
+    //printf("goto detecte\n");
+    Sym_Suiv(); // doit trouver un identifiant de type label
+    if(SYM.CODE == ID_TOKEN){
+            //printf("identifiant trouve \n");
+            declared = check_if_declared(SYM.NOM);
+            if(declared == 1){ // le label existe
+                Sym_Suiv();
+                Test_Symbole(PV_TOKEN, PV_ERR);
+            }else{ //label pas declare
+                printf("Le label %s n'a jamais ete declare\n", SYM.NOM);
+                exit(1);
+            }
+    }else{
+        printf("Erreur lors de l'usage de goto, pas d'identifiant reconnu\n");
+        exit(1);
+    }
 }
 
 //===================== INST ==========================
@@ -1961,7 +2010,7 @@ void is_constant_affectee(char* idf_nom){
 //regle 5: pas de declaration avec le nom du programme
 void illegal_program_name(char* idf_nom){
     if(TAB_IDFS[0].NOM != NULL && stricmp(idf_nom, TAB_IDFS[0].NOM) == 0){
-        printf("Erreur: Declaration illegale: interdit de declarer une variable avec le nom du programme %s, ligne %d\n", idf_nom, ligne_actuelle);
+        printf("Erreur: Declaration illegale: interdit de faire une declaration avec le nom du programme %s, ligne %d\n", idf_nom, ligne_actuelle);
         exit (1);
     }
 }
@@ -2008,10 +2057,10 @@ int main()
     if (SYM.CODE == PT_TOKEN)
     {
         printf("BRAVO de main: le programme est correcte on arrive a la fin !!!\n");
-        /*printf("Contenu de TAB_IDFS :\n");
+        printf("Contenu de TAB_IDFS :\n");
         for (int i = 0; i < TIDFS_indice; i++) {
             printf("Indice %d : %s\n", i, TAB_IDFS[i].NOM);
-        }*/
+        }
     }
     else
     {
