@@ -276,8 +276,8 @@ void afficher_contenu_pile() {
              case HLT:
                 printf("HLT\n");
                 break;
-            
-            
+
+
             // Ajoutez d'autres cas pour les autres mnémoniques selon vos besoins
 
             case LDI:
@@ -794,7 +794,7 @@ void constant_definition() {
              TABLESYM[IND_DER_SYM_ACC].ADRESSE = adresse_constante;
 
         // Après avoir obtenu l'adresse, générez le p-code pour cette constante
-             GENERER2(LDA, adresse_constante); 
+             GENERER2(LDA, adresse_constante);
            //GENERER2(LDA, TABLESYM[IND_DER_SYM_ACC++].ADRESSE);
             Sym_Suiv(); // Consommer le token identifiant
 
@@ -1542,7 +1542,7 @@ void variable_declaration() {
     variable_identifier();
             int adresse_constante = obtenir_adresse_constante();
              TABLESYM[IND_DER_SYM_ACC].ADRESSE = adresse_constante;
-             GENERER2(LDA, adresse_constante); 
+             GENERER2(LDA, adresse_constante);
     // Tant que nous trouvons une virgule, lire d'autres identifiants de variables
     while (SYM.CODE == VIR_TOKEN) {
         // Consommer la virgule
@@ -1558,7 +1558,7 @@ void variable_declaration() {
         variable_identifier();
         int adresse_constante = obtenir_adresse_constante();
              TABLESYM[IND_DER_SYM_ACC].ADRESSE = adresse_constante;
-             GENERER2(LDA, adresse_constante); 
+             GENERER2(LDA, adresse_constante);
     }
 
     // Vérifier si le prochain jeton est ":"
