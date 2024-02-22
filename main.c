@@ -801,9 +801,8 @@ void type_definition() {
 void type() {
     printf(SYM.NOM);
     printf("\n");
-    if (SYM.CODE == INTEGER_TOKEN || SYM.CODE == FLOAT_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == BOOL_TOKEN) {
+    if (SYM.CODE == INTEGER_TOKEN || SYM.CODE == FLOAT_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == BOOL_TOKEN ||SYM.CODE == ID_TOKEN) {
         Sym_Suiv(); // Avance au prochain symbole après le type prédéfini
-
     }else if (SYM.CODE == PO_TOKEN) {
         // Consommer "("
         Sym_Suiv();
@@ -1438,28 +1437,34 @@ void procedure_or_function_calling() {
     if (SYM.CODE == PO_TOKEN) {
         Sym_Suiv(); // Consommer la parenthèse gauche
 
-        Test_Symbole(ID_TOKEN, ID_ERR);
-            while (SYM.CODE == VIR_TOKEN) {
-                Sym_Suiv(); // Consommer la virgule
-                Test_Symbole(ID_TOKEN, ID_ERR);
-            }
+        printf("on a consomme ( \n");
+        //Test_Symbole(ID_TOKEN, ID_ERR);
+        if (SYM.CODE == ID_TOKEN||SYM.CODE == FLOAT_TOKEN||SYM.CODE == NUM_TOKEN){ Sym_Suiv(); } // Consommer la parenthèse gauche
+        else if(SYM.CODE == QUOTE_TOKEN){ string(); }
+        while (SYM.CODE == VIR_TOKEN) {
+            Sym_Suiv(); // Consommer la virgule
+            Test_Symbole(ID_TOKEN, ID_ERR);
+        }
         Test_Symbole(PF_TOKEN, PF_ERR);
     }
 }
 
 void formal_parameter_section() {
-    if (SYM.CODE == VAR_TOKEN) {
-        Sym_Suiv(); // Consommer VAR
-    }
-    Test_Symbole(ID_TOKEN, ID_ERR);
-    while (SYM.CODE == VIR_TOKEN) {
-        Sym_Suiv(); // Consommer la virgule
-        Test_Symbole(ID_TOKEN, ID_ERR);
-    }
-    Test_Symbole(TP_TOKEN, TP_ERR);
-    //Test_Symbole(TYPE_TOKEN, TYPE_ERR);
-    type();
+    if (SYM.CODE == VAR_TOKEN) { Sym_Suiv(); } // Consommer VAR
 
+    //Test_Symbole(ID_TOKEN, ID_ERR);
+    if (SYM.CODE == ID_TOKEN){
+        Sym_Suiv(); // Consommer VAR
+
+        while (SYM.CODE == VIR_TOKEN) {
+            Sym_Suiv(); // Consommer la virgule
+            Test_Symbole(ID_TOKEN, ID_ERR);
+        }
+        Test_Symbole(TP_TOKEN, TP_ERR);
+
+        //Test_Symbole(TYPE_TOKEN, TYPE_ERR);
+        type();
+    } else{ printf("\n pas de parametre  "); }
 }
 
 void function_declaration() {
@@ -1535,6 +1540,15 @@ void INST(){
             exists = check_if_declared(SYM.NOM);
             if(exists == 1){
                 Sym_Suiv();
+                if (SYM.CODE == PT_TOKEN){
+                    Sym_Suiv();
+                    Test_Symbole(ID_TOKEN, ID_ERR);
+                }
+                if (SYM.CODE == CROCHETO_TOKEN){
+                        Sym_Suiv();
+                        Test_Symbole(ID_TOKEN, ID_ERR);
+                        Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
+                }
                 if (SYM.CODE == AFF_TOKEN){
                         is_constant_affectee(SYM.NOM);
                         AFFEC();}
@@ -1555,6 +1569,10 @@ void INST(){
 
         case IF_TOKEN:
             SI();
+            break;
+
+        case FOR_TOKEN:
+            POUR();
             break;
 
         case WHILE_TOKEN:
@@ -1630,21 +1648,20 @@ void LIRE()
 {
     Test_Symbole(READ_TOKEN, READ_ERR);
     Test_Symbole(PO_TOKEN, PO_ERR);
-    if (SYM.CODE == QUOTE_TOKEN){
-        string();
-    }
-    else{
-    Test_Symbole(ID_TOKEN, ID_ERR);
-    }
-    while (SYM.CODE == VIR_TOKEN)
-    {
+    if (SYM.CODE == QUOTE_TOKEN){ string(); }
+    else if (SYM.CODE==ID_TOKEN) { Sym_Suiv(); }
+    while (SYM.CODE == VIR_TOKEN) {
         Sym_Suiv();
-  if (SYM.CODE == QUOTE_TOKEN){
-        string();
+        if (SYM.CODE == QUOTE_TOKEN){ string(); }
     }
-    else{
-    Test_Symbole(ID_TOKEN, ID_ERR);
-    }    }
+    if (SYM.CODE == CROCHETO_TOKEN){
+        Sym_Suiv();
+        Test_Symbole(ID_TOKEN, ID_ERR);
+        Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
+    } else if (SYM.CODE== PT_TOKEN){
+        Sym_Suiv();
+        Test_Symbole(ID_TOKEN, ID_ERR);
+    }
 
     Test_Symbole(PF_TOKEN, PF_ERR);
 }
@@ -1687,11 +1704,18 @@ void POUR()
 {
     Test_Symbole(FOR_TOKEN, FOR_ERR);//à AJOUTER
     Test_Symbole(ID_TOKEN, ID_ERR);
-    Test_Symbole(DO_TOKEN, DO_ERR);
-    AFFEC();
-    Test_Symbole(NUM_TOKEN, NUM_ERR);
-    NTOP();
-    Test_Symbole(NUM_TOKEN, NUM_ERR);
+    Test_Symbole(AFF_TOKEN, AFF_ERR);
+    printf("\n pas de prob dans := \n");
+
+    FACT();
+    printf("\n pas de prob dans fact \n");
+
+    Test_Symbole(TO_TOKEN, TO_ERR);
+    printf("\n pas de prob dans to \n");
+
+    FACT();
+    printf("\n pas de prob dans fact2 \n");
+
     Test_Symbole(DO_TOKEN, DO_ERR);
     INST();
 }
@@ -1782,7 +1806,16 @@ void FACT()
     {
     case ID_TOKEN:
         Test_Symbole(ID_TOKEN, ID_ERR);
-        break;
+        if (SYM.CODE == PO_TOKEN){ procedure_or_function_calling(); }
+        else if (SYM.CODE == CROCHETO_TOKEN){
+                Sym_Suiv();
+                Test_Symbole(ID_TOKEN, ID_ERR);
+                Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
+            }else if (SYM.CODE== PT_TOKEN){
+                Sym_Suiv();
+                Test_Symbole(ID_TOKEN, ID_ERR);
+            }
+            break;
     case NUM_TOKEN:
         Test_Symbole(NUM_TOKEN, NUM_ERR);
         break;
