@@ -105,90 +105,153 @@ typedef enum
     INTEGER_ERR,
 } CODES_ERR;
 
+
+
+
+
 typedef struct
 {
     CODES CODE;
     char NOM[20];
+    int VAL;
 } Current_sym;
 
 Current_sym SYM;
+typedef enum {TPROG, TCONST, TVAR} TSYM;
+
+//============================================= pour p-Code==================================
+// Définition des constantes
+#define TABLEINDEX 100 // Taille du tableau TABLESYM
+
+
+// Structure pour représenter un enregistrement dans TABLESYM
+typedef struct {
+    char NOM[50];
+    TSYM CLASSE;
+    int ADRESSE;
+} ENREGISTREMENT;
+
+// Définition du tableau TABLESYM
+ENREGISTREMENT TABLESYM[TABLEINDEX];
+
+// Définition de la variable OFFSET
+int OFFSET;
+
+
+
+// Définition des constantes
+#define TAILLEMEM 100 // Taille du tableau MEM
+#define TAILLECODE 100 // Taille du tableau PCODE
+
+// Définition des mnémoniques
+typedef enum {
+    ADD, SUB, MUL, DIV, EQL, NEQ, GTR,
+    LSS, GEQ, LEQ, PRN, INN, INT, LDI, LDA,
+    LDV, STO, BRN, BZE, HLT
+} MNEMONIQUES;
+
+// Structure pour représenter une instruction
+typedef struct {
+    MNEMONIQUES MNE;
+    int SUITE;
+} INSTRUCTION;
+
+// Définition des tableaux MEM et PCODE
+int MEM[TAILLEMEM];
+INSTRUCTION PCODE[TAILLECODE];
+
+// Définition des variables SP et PC
+int SP;
+int PC;
+
+// Fonction pour empiler sur la pile
+void push(int value) {
+    if (SP < TAILLEMEM) {
+        MEM[SP] = value;
+        SP++;
+    } else {
+        printf("Stack overflow!\n");
+    }
+}
+
+int pop() {
+    if (SP > 0) {
+        SP--;
+        return MEM[SP];
+    } else {
+        printf("Stack underflow!\n");
+        return 0;  // Vous pouvez ajuster cela en fonction de vos besoins
+    }
+}
+
+// Fonction pour générer une instruction
+void GENERER1(MNEMONIQUES M) {
+    // Vérifier si PC atteint la taille maximale
+    if (PC == TAILLECODE) {
+        printf("ERREUR : Tableau PCODE plein\n");
+        return;
+    }
+
+    // Incrémenter PC et affecter le mnémonique à PCODE
+    PC++;
+    PCODE[PC].MNE = M;
+}
+
+
+// Fonction pour générer une instruction avec un argument
+void GENERER2(MNEMONIQUES M, int A) {
+    // Vérifier si PC atteint la taille maximale
+    if (PC == TAILLECODE) {
+        printf("ERREUR : Tableau PCODE plein\n");
+        return;
+    }
+
+    // Incrémenter PC et affecter le mnémonique et l'argument à PCODE
+    PC++;
+    PCODE[PC].MNE = M;
+    PCODE[PC].SUITE = A;
+}
+int IND_DER_SYM_ACC = 0;
+int adresse_courante = 0;
+int obtenir_adresse_constante() {
+    return adresse_courante++;
+}
+// Fonction pour afficher le contenu du tableau PCODE
+void afficher_pcode() {
+    printf("=== P-Code ===\n");
+    for (int i = 1; i <= PC; i++) {
+        switch (PCODE[i].MNE) {
+            case ADD:
+                printf("%d: ADD\n", i);
+                break;
+            case SUB:
+                printf("%d: SUB\n", i);
+                break;
+            // Ajoutez des cas pour d'autres mnémoniques selon vos besoins
+            default:
+                printf("%d: MNEMONIQUE INCONNU\n", i);
+        }
+    }
+    printf("==============\n");
+}
+
+
+// ============================= table de symboles =====================================
+
+typedef struct {
+    char NOM[20];
+    TSYM TIDF;
+} T_TAB_IDF;
+
+T_TAB_IDF TAB_IDFS[100];
+int TIDFS_indice = 0;
+
+// =======================================================================================
 int ligne_actuelle = 1;
 
 FILE *fichier;
 
 char Car_Cour; // caract�re courant
-
-// functions declaration
-void VARS();
-void INSTS();
-void INST();
-void AFFEC();
-void SI();
-void TANTQUE();
-void ECRIRE();
-void LIRE();
-void EXPR();
-void TERM();
-void FACT();
-void MULOP();
-void ADDOP();
-void RELOP();
-void NTOP();
-void COND();
-void REPETER();
-void POUR();
-void CAS();
-void Lire_Car();
-void Erreur(CODES_ERR code);
-void Test_Symbole(CODES cl, CODES_ERR COD_ERR);
-void PROGRAM();
-void BLOCK();
-void CONSTS();
-void Sym_Suiv();
-void lire_mot();
-void lire_nombre();
-
-void label_declaration_part();
-void const_definition_part();
-void type_definition_part();
-void variable_declaration_part();
-//void procedure_and_function_declaration_part();
-void statement_part();
-void empty();
-void label();
-void constant_definition_part();
-void constant_definition();
-void unsigned_real();
-void string();
-void constant();
-void unsigned_number();
-void unsigned_integer();
-void unsigned_real();
-void scale_factor();
-void sign();
-void constant_identifier();
-void string();
-void type_definition_part();
-void type_definition();
-void type();
-void simple_type();
-void scalar_type();
-void subrange_type();
-void type_identifier();
-void structured_type();
-void array_type();
-void index_type();
-void component_type();
-void record_type();
-void field_list();
-void fixed_part();
-void record_section();
-void variant_type();
-void tag_field();
-void variant();
-void case_label_list();
-void case_label();
-void set_type();
 
 
 // functions definition
@@ -210,163 +273,54 @@ void lire_mot()
         Lire_Car();
     }
 
-    // Ajout du caract�re de fin de cha�ne
+    // Ajout du caract�re de fin de chaine
     mot[indice] = '\0';
 
-    // V�rifier si le mot est un mot-cl�
-    if (stricmp(mot, "program") == 0) {
-        SYM.CODE = PROGRAM_TOKEN;
-    }
-     else if (stricmp(mot, "set") == 0)
-    {
-        SYM.CODE = SET_TOKEN;
-    }
-    else if (stricmp(mot, "const") == 0)
-    {
-        SYM.CODE = CONST_TOKEN;
-    }
-    else if (stricmp(mot, "var") == 0)
-    {
-        SYM.CODE = VAR_TOKEN;
-    }
-    else if (stricmp(mot, "boolean") == 0)
-    {
-        SYM.CODE = BOOL_TOKEN;
-    }
-    else if (stricmp(mot, "begin") == 0)
-    {
-        SYM.CODE = BEGIN_TOKEN;
-    }
-    else if (stricmp(mot, "end") == 0)
-    {
-        SYM.CODE = END_TOKEN;
-    }
-    else if (stricmp(mot, "if") == 0)
-    {
-        SYM.CODE = IF_TOKEN;
-    }
-    else if (stricmp(mot, "writeln") == 0)
-    {
-        SYM.CODE = WRITE_TOKEN;
-    }
-     else if (stricmp(mot, "file") == 0)
-    {
-        SYM.CODE = FILE_TOKEN;
-    }
+    // Verifier si le mot est un mot-cle
+    if (stricmp(mot, "program") == 0) { SYM.CODE = PROGRAM_TOKEN; }
+    else if (stricmp(mot, "set") == 0) { SYM.CODE = SET_TOKEN; }
+    else if (stricmp(mot, "const") == 0) { SYM.CODE = CONST_TOKEN; }
+    else if (stricmp(mot, "var") == 0) { SYM.CODE = VAR_TOKEN; }
+    else if (stricmp(mot, "boolean") == 0) { SYM.CODE = BOOL_TOKEN; }
+    else if (stricmp(mot, "begin") == 0) { SYM.CODE = BEGIN_TOKEN; }
+    else if (stricmp(mot, "end") == 0) { SYM.CODE = END_TOKEN; }
+    else if (stricmp(mot, "if") == 0) { SYM.CODE = IF_TOKEN; }
+    else if (stricmp(mot, "writeln") == 0) { SYM.CODE = WRITE_TOKEN; }
+    else if (stricmp(mot, "file") == 0) { SYM.CODE = FILE_TOKEN; }
+    else if (stricmp(mot, "then") == 0) { SYM.CODE = THEN_TOKEN; }
+    else if (stricmp(mot, "while") == 0) { SYM.CODE = WHILE_TOKEN; }
+    else if (stricmp(mot, "E") == 0) { SYM.CODE = E_TOKEN; }
+    else if (stricmp(mot, "do") == 0) { SYM.CODE = DO_TOKEN; }
+    else if (stricmp(mot, "readln") == 0) { SYM.CODE = READ_TOKEN; }
+    else if (stricmp(mot, "string") == 0) { SYM.CODE = STRING_TOKEN; }
+    else if (stricmp(mot, "real") == 0) { SYM.CODE = FLOAT_TOKEN; }
+    else if (stricmp(mot, "integer") == 0) { SYM.CODE = INTEGER_TOKEN; }
+    else if (stricmp(mot, "char") == 0) { SYM.CODE = CHAR_TOKEN; }
+    else if (stricmp(mot, "and") == 0) { SYM.CODE = AND_TOKEN; }
+    else if (stricmp(mot, "or") == 0) { SYM.CODE = OR_TOKEN; }
+    else if (stricmp(mot, "goto") == 0) { SYM.CODE = GOTO_TOKEN; }
+    else if (stricmp(mot, "else") == 0) { SYM.CODE = ELSE_TOKEN; }
+    else if (stricmp(mot, "repeat") == 0) { SYM.CODE = REPEAT_TOKEN; }
+    else if (stricmp(mot, "until") == 0) { SYM.CODE = UNTIL_TOKEN; }
+    else if (stricmp(mot, "for") == 0) { SYM.CODE = FOR_TOKEN; }
+    else if (stricmp(mot, "to") == 0) { SYM.CODE = TO_TOKEN; }
+    else if (stricmp(mot, "downto") == 0) { SYM.CODE = DOWNTO_TOKEN; }
+    else if (stricmp(mot, "with") == 0) { SYM.CODE = WITH_TOKEN; }
+    else if (stricmp(mot, "type") == 0) { SYM.CODE = TYPE_TOKEN; }
+    else if (stricmp(mot, "label") == 0) { SYM.CODE = LABEL_TOKEN; }
+    else if (stricmp(mot, "array") == 0) { SYM.CODE = ARRAY_TOKEN; }
+    else if (stricmp(mot, "of") == 0) { SYM.CODE = OF_TOKEN; }
+    else if (stricmp(mot, "record") == 0) { SYM.CODE = RECORD_TOKEN; }
+    else if (stricmp(mot, "case") == 0) { SYM.CODE = CASE_TOKEN; }
+    else if (stricmp(mot, "setof") == 0) { SYM.CODE = SETOF_TOKEN; }
+    else if (stricmp(mot, "fileof") == 0) { SYM.CODE = FILEOF_TOKEN; }
+    else if (stricmp(mot, "procedure") == 0) { SYM.CODE = PROCEDURE_TOKEN; }
+    else if (stricmp(mot, "function") == 0) { SYM.CODE = FUNCTION_TOKEN; }
+    else if (stricmp(mot, "in") == 0) { SYM.CODE = IN_TOKEN; }
+    else if (stricmp(mot, "div") == 0) { SYM.CODE = DIVV_TOKEN; }
+    else if (stricmp(mot, "mod") == 0) { SYM.CODE = MOD_TOKEN; }
+    else { SYM.CODE = ID_TOKEN; }
 
-    else if (stricmp(mot, "then") == 0)
-    {
-        SYM.CODE = THEN_TOKEN;
-    }
-    else if (stricmp(mot, "while") == 0)
-    {
-        SYM.CODE = WHILE_TOKEN;
-    }
-    else if (stricmp(mot, "E") == 0)
-    {
-        SYM.CODE = E_TOKEN;
-    }
-    else if (stricmp(mot, "do") == 0)
-    {
-        SYM.CODE = DO_TOKEN;
-    }
-    else if (stricmp(mot, "readln") == 0)
-    {
-        SYM.CODE = READ_TOKEN;
-    }
-    else if (stricmp(mot, "string") == 0)
-    {
-        SYM.CODE = STRING_TOKEN;
-    }
-    else if (stricmp(mot, "real") == 0)
-    {
-        SYM.CODE = FLOAT_TOKEN;
-    }
-    else if (stricmp(mot, "integer") == 0)
-    {
-        SYM.CODE = INTEGER_TOKEN;
-    }else if (stricmp(mot, "char") == 0)
-    {
-        SYM.CODE = CHAR_TOKEN;
-    }else if (stricmp(mot, "and") == 0)
-    {
-        SYM.CODE = AND_TOKEN;
-    }else if (stricmp(mot, "or") == 0)
-    {
-        SYM.CODE = OR_TOKEN;
-    }else if (stricmp(mot, "goto") == 0)
-    {
-        SYM.CODE = GOTO_TOKEN;
-    }else if (stricmp(mot, "else") == 0)
-    {
-        SYM.CODE = ELSE_TOKEN;
-    }else if (stricmp(mot, "repeat") == 0)
-    {
-        SYM.CODE = REPEAT_TOKEN;
-    }else if (stricmp(mot, "until") == 0)
-    {
-        SYM.CODE = UNTIL_TOKEN;
-    }else if (stricmp(mot, "for") == 0)
-    {
-        SYM.CODE = FOR_TOKEN;
-    }else if (stricmp(mot, "to") == 0)
-    {
-        SYM.CODE = TO_TOKEN;
-    }else if (stricmp(mot, "downto") == 0)
-    {
-        SYM.CODE = DOWNTO_TOKEN;
-    }else if (stricmp(mot, "with") == 0)
-    {
-        SYM.CODE = WITH_TOKEN;
-    }
-    else if (stricmp(mot, "type") == 0)
-    {
-        SYM.CODE = TYPE_TOKEN;
-    }else if (stricmp(mot, "label") == 0)
-    {
-        SYM.CODE = LABEL_TOKEN;
-    }
-    else if (stricmp(mot, "array") == 0)
-    {
-        SYM.CODE = ARRAY_TOKEN;
-    }else if (stricmp(mot, "of") == 0)
-    {
-        SYM.CODE = OF_TOKEN;
-    }else if (stricmp(mot, "record") == 0)
-    {
-        SYM.CODE = RECORD_TOKEN;
-    }else if (stricmp(mot, "case") == 0)
-    {
-        SYM.CODE = CASE_TOKEN;
-    }else if (stricmp(mot, "setof") == 0)
-    {
-        SYM.CODE = SETOF_TOKEN;
-    }else if (stricmp(mot, "fileof") == 0)
-    {
-        SYM.CODE = FILEOF_TOKEN;
-    }else if (stricmp(mot, "procedure") == 0)
-    {
-        SYM.CODE = PROCEDURE_TOKEN;
-    }else if (stricmp(mot, "function") == 0)
-    {
-        SYM.CODE = FUNCTION_TOKEN;
-    }else if (stricmp(mot, "in") == 0)
-    {
-        SYM.CODE = IN_TOKEN;
-    }
-    else if (stricmp(mot, "div") == 0)
-    {
-        SYM.CODE = DIVV_TOKEN;
-    }else if (stricmp(mot, "mod") == 0)
-    {
-        SYM.CODE = MOD_TOKEN;
-    }
-
-    else
-    {
-        // If it's not a keyword, it's an identifier
-        SYM.CODE = ID_TOKEN;
-    }
 
     // Stockage du mot dans le jeton
     strcpy(SYM.NOM, mot);
@@ -412,6 +366,7 @@ void lire_nombre() {
     }
 
     strcpy(SYM.NOM, nombre);
+    SYM.VAL = atoi(SYM.NOM);
 }
 
 
@@ -612,9 +567,18 @@ void Test_Symbole(CODES cl, CODES_ERR COD_ERR)
 void PROGRAM()
 {
     Test_Symbole(PROGRAM_TOKEN, PROGRAM_ERR);
+
+    // l'identifiant de program est ajoute dans la table d'identifiants
+    strncpy(TAB_IDFS[TIDFS_indice].NOM, SYM.NOM, sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1);
+    TAB_IDFS[TIDFS_indice].NOM[sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1] = '\0';
+    TAB_IDFS[TIDFS_indice].TIDF = TPROG;
+    TIDFS_indice++;
+
     Test_Symbole(ID_TOKEN, ID_ERR);
     Test_Symbole(PV_TOKEN, PV_ERR);
     BLOCK();
+    GENERER1(HLT);
+
 
     //Test_Symbole(PT_TOKEN, PT_ERR);
     // Check for the dot after BLOCK
@@ -641,11 +605,15 @@ void PROGRAM()
 
 void BLOCK()
 {
+         OFFSET = 0;
     label_declaration_part();//consts();
     constant_definition_part();//VARS();
     type_definition_part();//INSTS*
     variable_declaration_part();
+    PCODE[0].MNE = INT;
+    PCODE[0].SUITE = OFFSET;
     procedure_and_function_declaration_part();
+
     INSTS();
    // statement_part();
 }
@@ -742,28 +710,42 @@ void constant_definition_part() {
                // Sym_Suiv();
 }
 
-
-
 //===================== constant_definition ==========================
 // Fonction pour analyser une définition de constante
 void constant_definition() {
     if (SYM.CODE == ID_TOKEN) {
-        Sym_Suiv(); // Consommer le token identifiant
+            // l'identifiant de la variable est ajoute dans la table d'identifiants---------
+            //first, check if this identifier already exists
+            illegal_program_name(SYM.NOM);
+            double_declaration(SYM.NOM, TCONST);
+            // ---------------------- fin partie table d'identifiants / semantique ---------------------
+             int adresse_constante = obtenir_adresse_constante();
+             TABLESYM[IND_DER_SYM_ACC].ADRESSE = adresse_constante;
 
-        if (SYM.CODE == EG_TOKEN) {
-            Sym_Suiv(); // Consommer le token "="
-            // Vérifier si la constante est une valeur directe
-            if (SYM.CODE == NUM_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == FLOAT_TOKEN ) {
-                Sym_Suiv(); // Consommer la constante directe
+        // Après avoir obtenu l'adresse, générez le p-code pour cette constante
+             GENERER2(LDA, adresse_constante); 
+           //GENERER2(LDA, TABLESYM[IND_DER_SYM_ACC++].ADRESSE);
+            Sym_Suiv(); // Consommer le token identifiant
+
+            if (SYM.CODE == EG_TOKEN) {
+                Sym_Suiv(); // Consommer le token "="
+                // Vérifier si la constante est une valeur directe
+                if (SYM.CODE == NUM_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == FLOAT_TOKEN ) {
+                    GENERER2(LDI, SYM.VAL);
+                    GENERER1(STO);
+                    Sym_Suiv(); // Consommer la constante directe
+
+
+                } else {
+                    // Si ce n'est pas une constante directe, analyser la constante associée
+                    constant(); // Analyser la constante associée
+
+                }
             } else {
-                // Si ce n'est pas une constante directe, analyser la constante associée
-                constant(); // Analyser la constante associée
+                // Gérer une erreur si le token suivant n'est pas "="
+                printf("Erreur : '=' attendu dans la définition de constante\n");
+                Erreur(EG_ERR);
             }
-        } else {
-            // Gérer une erreur si le token suivant n'est pas "="
-            printf("Erreur : '=' attendu dans la définition de constante\n");
-            Erreur(EG_ERR);
-        }
     } else {
                        // Sym_Suiv();
 
@@ -771,13 +753,19 @@ void constant_definition() {
        // printf("Erreur : Identifiant attendu dans la définition de constante\n");
        // Erreur(TP_ERR);
     }
+    // Ajouter du code pour afficher le p-code généré pour cette instruction
+    printf("=== P-Code de la définition de constante ===\n");
+    printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+    printf("LDI %d\n", SYM.VAL);
+    printf("STO\n");
+    printf("===========================================\n");
 }
 //===================== constant ==========================
 // Fonction pour analyser une constante
 void constant() {
-    if (SYM.CODE == NUM_TOKEN || SYM.CODE == ID_TOKEN || SYM.CODE == STRING_TOKEN) {
-        // Pas besoin de Sym_Suiv() ici
-    } else if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN) {
+    if (SYM.CODE == NUM_TOKEN ||SYM.CODE == FLOAT_TOKEN ) {
+            GENERER2(LDI, SYM.VAL);
+    } else if (SYM.CODE == PLUS_TOKEN || SYM.CODE == MOINS_TOKEN||SYM.CODE == ID_TOKEN || SYM.CODE == CHAR_TOKEN) {
         // Pas besoin de Sym_Suiv() ici non plus
         if (SYM.CODE == ID_TOKEN) {
             // Pas besoin de Sym_Suiv() ici non plus
@@ -794,6 +782,14 @@ void constant() {
         printf("Erreur : Constante invalide dans la définition de constante\n");
         Erreur(CONST_ERR);
     }
+    GENERER1(STO);
+    // Ajouter du code pour afficher le p-code généré pour cette instruction
+    printf("=== P-Code de la définition de constante ===\n");
+    printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+    printf("LDI %d\n", SYM.VAL);
+    printf("STO\n");
+    printf("===========================================\n");
+
 }
 //===================== unsigned_number ==========================
 // Implémentation de la production <unsigned number>
@@ -957,7 +953,6 @@ void type() {
     printf("\n");
     if (SYM.CODE == INTEGER_TOKEN || SYM.CODE == FLOAT_TOKEN || SYM.CODE == CHAR_TOKEN || SYM.CODE == STRING_TOKEN || SYM.CODE == BOOL_TOKEN ||SYM.CODE == ID_TOKEN) {
         Sym_Suiv(); // Avance au prochain symbole après le type prédéfini
-
     }else if (SYM.CODE == PO_TOKEN) {
         // Consommer "("
         Sym_Suiv();
@@ -1008,31 +1003,25 @@ void type() {
     }
 }
 
-
 //===================== simple_type ==========================
-
-
 void simple_type() {
     // Vérifier si le type est un type scalaire, un type de plage ou un identifiant de type
-    if (SYM.CODE == PO_TOKEN) {
-        scalar_type();
-    } else if (SYM.CODE == NUM_TOKEN) {
-        subrange_type();
-    } else if (SYM.CODE == ID_TOKEN) {
-        type_identifier();
-    } else {
+    if (SYM.CODE == PO_TOKEN) { scalar_type(); }
+    else if (SYM.CODE == NUM_TOKEN) { subrange_type(); }
+    else if (SYM.CODE == ID_TOKEN) { type_identifier(); }
+    else {
         // Si aucun des cas ci-dessus n'est vrai, signaler une erreur
         printf("Erreur : Type scalaire, de plage ou identifiant de type attendu\n");
         Erreur(TYPE_ERR);
     }
 }
+
 //===================== field_identifier ==========================
 
 void field_identifier() {
     // Vérifier si le jeton actuel est un identifiant
     if (SYM.CODE == ID_TOKEN) {
         // Récupérer l'identifiant et effectuer toute autre action nécessaire
-        // Ici, vous pouvez copier l'identifiant dans une variable ou effectuer d'autres traitements
         // Passer au jeton suivant
         Sym_Suiv();
     } else {
@@ -1060,10 +1049,8 @@ void scalar_type() {
 
 void variable_identifier() {
     // Vérifier si le jeton actuel est un identifiant
-    if (SYM.CODE == ID_TOKEN) {
-        // Consommer l'identifiant en passant au jeton suivant
-        Sym_Suiv();
-    } else {
+    if (SYM.CODE == ID_TOKEN) { Sym_Suiv(); } // Consommer l'identifiant en passant au jeton suivant
+    else {
         Erreur(ID_ERR); // Utilisation de la fonction Erreur pour signaler l'erreur
 
         // Si le jeton actuel n'est pas un identifiant, signaler une erreur
@@ -1074,15 +1061,14 @@ void variable_identifier() {
 //===================== subrange_type ==========================
 void subrange_type() {
     // Appeler la fonction de constante
-
     constant();
+    Sym_Suiv();
 
-
-                Sym_Suiv();
     // Vérifier si le prochain jeton est ".."
     if (SYM.CODE == DOTDOT_TOKEN) {
         // Consommer ".."
         Sym_Suiv();
+
         // Appeler la fonction de constante
         constant();
     } else {
@@ -1094,10 +1080,8 @@ void subrange_type() {
 //===================== type_identifier ==========================
 void type_identifier() {
     // Vérifier si le prochain jeton est un identifiant
-    if (SYM.CODE == ID_TOKEN) {
-        // Consommer l'identifiant
-        Sym_Suiv();
-    } else {
+    if (SYM.CODE == ID_TOKEN) { Sym_Suiv(); } // Consommer l'identifiant
+    else {
         // Si le prochain jeton n'est pas un identifiant, signaler une erreur
         printf("Erreur : Identifiant de type attendu\n");
         Erreur(ID_ERR);
@@ -1106,15 +1090,11 @@ void type_identifier() {
 //===================== structured_type ==========================
 void structured_type() {
     // Vérifier si le type est un type tableau, un type enregistrement, un ensemble ou un fichier
-    if (SYM.CODE == ARRAY_TOKEN) {
-        array_type();
-    } else if (SYM.CODE == RECORD_TOKEN) {
-        record_type();
-    } else if (SYM.CODE == SETOF_TOKEN) {
-        set_type();
-    } else if (SYM.CODE == FILEOF_TOKEN) {
-        file_type();
-    } else {
+    if (SYM.CODE == ARRAY_TOKEN) { array_type();}
+    else if (SYM.CODE == RECORD_TOKEN) { record_type(); }
+    else if (SYM.CODE == SETOF_TOKEN) { set_type(); }
+    else if (SYM.CODE == FILEOF_TOKEN) { file_type(); }
+    else {
         // Si aucun des cas ci-dessus n'est vrai, signaler une erreur
         printf("Erreur : Type structuré attendu\n");
         Erreur(TYPE_ERR);
@@ -1140,15 +1120,14 @@ void array_type() {
             while (SYM.CODE == VIR_TOKEN) {
                 // Consommer ","
                 Sym_Suiv();
+
                 // Appeler la fonction de type d'index
                 index_type();
             }
 
             // Vérifier si le prochain jeton est "]"
-            if (SYM.CODE == CROCHETF_TOKEN) {
-                // Consommer "]"
-                Sym_Suiv();
-            } else {
+            if (SYM.CODE == CROCHETF_TOKEN) { Sym_Suiv(); } // Consommer "]"
+            else {
                 // Si le prochain jeton n'est pas "]", signaler une erreur
                 printf("Erreur : Symbole ']' attendu\n");
                 Erreur(CROCHETF_ERR);
@@ -1158,6 +1137,7 @@ void array_type() {
             if (SYM.CODE == OF_TOKEN) {
                 // Consommer "of"
                 Sym_Suiv();
+
                 // Appeler la fonction du type de composant
                 component_type();
             } else {
@@ -1182,11 +1162,13 @@ void index_type() {
     // Appeler la fonction de type simple
     simple_type();
 }
+
 //===================== component_type ==========================
 void component_type() {
     // Appeler la fonction de type
     type();
 }
+
 //===================== record_type ==========================
 void record_type() {
     // Vérifier si le prochain jeton est "record"
@@ -1198,13 +1180,11 @@ void record_type() {
         field_list();
 
         // Vérifier si le prochain jeton est "end"
-        if (SYM.CODE == END_TOKEN) {
-            // Consommer "end"
-            Sym_Suiv();
-        } else {
+        if (SYM.CODE == END_TOKEN) { Sym_Suiv(); } // Consommer "end"
+        else {
             // Si le prochain jeton n'est pas "end", signaler une erreur
             printf("Erreur : Mot-clé 'end' attendu\n");
-        Erreur(END_ERR);
+            Erreur(END_ERR);
         }
     } else {
         // Si le prochain jeton n'est pas "record", signaler une erreur
@@ -1212,6 +1192,7 @@ void record_type() {
         Erreur(RECORD_ERR);
     }
 }
+
 //===================== field_list ==========================
 void field_list() {
     // Appeler la fonction de partie fixe
@@ -1226,13 +1207,8 @@ void field_list() {
         if (SYM.CODE == CASE_TOKEN || SYM.CODE == ID_TOKEN) {
             // Appeler la partie suivante (peut être une partie fixe ou une partie variante)
             Sym_Suiv();
-            if (SYM.CODE == CASE_TOKEN) {
-                // Appeler la fonction de partie variante
-                variant_part();
-            } else {
-                // Si ce n'est pas la partie variante, c'est une autre partie fixe
-                field_list();
-            }
+            if (SYM.CODE == CASE_TOKEN) { variant_part(); } // Appeler la fonction de partie variante
+            else { field_list(); } // Si ce n'est pas la partie variante, c'est une autre partie fixe
         }
     }
 }
@@ -1463,31 +1439,41 @@ void variable_declaration_part() {
 
     // Tant que nous trouvons un identifiant (nom de variable), lire et traiter les déclarations de variables
     while (SYM.CODE == ID_TOKEN) {
-        // Appeler la fonction de déclaration de variable
-        variable_declaration();
 
-        // Vérifier si nous avons atteint la fin des déclarations de variables
-        if (SYM.CODE != PV_TOKEN) {
-            // Si le prochain symbole n'est pas un point-virgule, cela signifie qu'il n'y a plus de variables à déclarer
-            // Donc nous pouvons sortir de la boucle
-            break;
-        }
+            illegal_program_name(SYM.NOM);
+            double_declaration(SYM.NOM, TVAR);
 
-        // Consommer le point-virgule
-        Sym_Suiv();
+            // Appeler la fonction de déclaration de variable
+            variable_declaration();
+
+            // Vérifier si nous avons atteint la fin des déclarations de variables
+            if (SYM.CODE != PV_TOKEN) {
+                // Si le prochain symbole n'est pas un point-virgule, cela signifie qu'il n'y a plus de variables à déclarer
+                // Donc nous pouvons sortir de la boucle
+                break;
+            }
+
+            // Consommer le point-virgule
+            Sym_Suiv();
     }
 }
 //===================== variable_declaration ==========================
 // Fonction pour la déclaration de variable
 void variable_declaration() {
     // Appeler la fonction de l'identifiant de variable
-    printf("je suis dans variable_declaration \n");
+    //printf("je suis dans variable_declaration \n");
     variable_identifier();
 
     // Tant que nous trouvons une virgule, lire d'autres identifiants de variables
     while (SYM.CODE == VIR_TOKEN) {
         // Consommer la virgule
         Sym_Suiv();
+
+        // l'identifiant de la variable est ajoute dans la table d'identifiants -----------------------
+        //first, check if this identifier already exists
+        illegal_program_name(SYM.NOM);
+        double_declaration(SYM.NOM, TVAR);
+        // --------------------------- fin partie semantique ------------------------------------
 
         // Appeler la fonction de l'identifiant de variable
         variable_identifier();
@@ -1569,9 +1555,7 @@ void procedure_or_function_declaration() {
     } else if (SYM.CODE == FUNCTION_TOKEN) {
         function_declaration();
         printf(SYM.NOM);
-
     }
-
 }
 
 void procedure_declaration() {
@@ -1602,46 +1586,35 @@ void procedure_or_function_calling() {
     //Test_Symbole(ID_TOKEN, ID_ERR);
     if (SYM.CODE == PO_TOKEN) {
         Sym_Suiv(); // Consommer la parenthèse gauche
+
         printf("on a consomme ( \n");
         //Test_Symbole(ID_TOKEN, ID_ERR);
-        if (SYM.CODE == ID_TOKEN||SYM.CODE == FLOAT_TOKEN||SYM.CODE == NUM_TOKEN){
-            Sym_Suiv(); // Consommer la parenthèse gauche
-        }else if(SYM.CODE == QUOTE_TOKEN){
-            string();
+        if (SYM.CODE == ID_TOKEN||SYM.CODE == FLOAT_TOKEN||SYM.CODE == NUM_TOKEN){ Sym_Suiv(); } // Consommer la parenthèse gauche
+        else if(SYM.CODE == QUOTE_TOKEN){ string(); }
+        while (SYM.CODE == VIR_TOKEN) {
+            Sym_Suiv(); // Consommer la virgule
+            Test_Symbole(ID_TOKEN, ID_ERR);
         }
-
-            while (SYM.CODE == VIR_TOKEN) {
-                Sym_Suiv(); // Consommer la virgule
-                Test_Symbole(ID_TOKEN, ID_ERR);
-            }
         Test_Symbole(PF_TOKEN, PF_ERR);
     }
 }
 
 void formal_parameter_section() {
-    printf("\n on est dans formal_parameter_section");
-    if (SYM.CODE == VAR_TOKEN) {
-        Sym_Suiv(); // Consommer VAR
-    }
+    if (SYM.CODE == VAR_TOKEN) { Sym_Suiv(); } // Consommer VAR
+
     //Test_Symbole(ID_TOKEN, ID_ERR);
     if (SYM.CODE == ID_TOKEN){
         Sym_Suiv(); // Consommer VAR
 
+        while (SYM.CODE == VIR_TOKEN) {
+            Sym_Suiv(); // Consommer la virgule
+            Test_Symbole(ID_TOKEN, ID_ERR);
+        }
+        Test_Symbole(TP_TOKEN, TP_ERR);
 
-
-    while (SYM.CODE == VIR_TOKEN) {
-        Sym_Suiv(); // Consommer la virgule
-        Test_Symbole(ID_TOKEN, ID_ERR);
-    }
-    Test_Symbole(TP_TOKEN, TP_ERR);
-    //Test_Symbole(TYPE_TOKEN, TYPE_ERR);
-    type();
-     }
-    else{
-            printf("\n pas de parametre  ");
-
-
-    }
+        //Test_Symbole(TYPE_TOKEN, TYPE_ERR);
+        type();
+    } else{ printf("\n pas de parametre  "); }
 }
 
 void function_declaration() {
@@ -1654,9 +1627,9 @@ void function_heading() {
     printf("in the function heading\n");
     Test_Symbole(FUNCTION_TOKEN, FUNCTION_ERR);
     Test_Symbole(ID_TOKEN, ID_ERR);
-    if (SYM.CODE == PV_TOKEN) {
-        Sym_Suiv(); // Consommer le point-virgule
-    } else if (SYM.CODE == PO_TOKEN) {
+
+    if (SYM.CODE == PV_TOKEN) { Sym_Suiv(); } // Consommer le point-virgule
+    else if (SYM.CODE == PO_TOKEN) {
         Sym_Suiv(); // Consommer la parenthèse gauche
         formal_parameter_section();
         while (SYM.CODE == PV_TOKEN) {
@@ -1668,7 +1641,7 @@ void function_heading() {
     Test_Symbole(TP_TOKEN, TP_ERR);
     // Test_Symbole(TYPE_TOKEN, TYPE_ERR);
    // printf("probleme ici ?");
-        type();
+    type();
 
     Test_Symbole(PV_TOKEN, PV_ERR); // Point-virgule
 }
@@ -1690,88 +1663,85 @@ void INSTS()
         {
             // Consommer le point-virgule
             Sym_Suiv();
+
             // Appeler la fonction pour analyser l'instruction suivante
             INST();
         }
 
         // Vérifier si le prochain jeton est "end"
-        if (SYM.CODE == END_TOKEN)
-        {
-            // Consommer "end"
-
-            Sym_Suiv();
-
-
-
-
-        }
-        else
-        {
-            // Si le prochain jeton n'est pas "end", signaler une erreur
-            Erreur(END_ERR);
-        }
+        if (SYM.CODE == END_TOKEN) { Sym_Suiv(); } // Consommer "end"
+        else { Erreur(END_ERR); } // Si le prochain jeton n'est pas "end", signaler une erreur
     }
-    else
-    {
-        // Si le prochain jeton n'est pas "begin", signaler une erreur
-        Erreur(BEGIN_ERR);
-    }
+    else { Erreur(BEGIN_ERR); } // Si le prochain jeton n'est pas "begin", signaler une erreur
 }
 
 //===================== INST ==========================
-void INST()
-
-{
+void INST(){
+    int exists = 0;
     //INSTS | AFFEC | SI | TANTQUE | ECRIRE | LIRE | e
-    switch (SYM.CODE)
-    {
-    case BEGIN_TOKEN:
+    switch (SYM.CODE) {
+        case BEGIN_TOKEN:
 
-        INSTS();
-        break;
+            INSTS();
+            break;
 
-    case ID_TOKEN:
-        Sym_Suiv();
-        if (SYM.CODE == PT_TOKEN){
-        Sym_Suiv();
-        Test_Symbole(ID_TOKEN, ID_ERR);
-    }
-        if (SYM.CODE == CROCHETO_TOKEN){
-        Sym_Suiv();
-        Test_Symbole(ID_TOKEN, ID_ERR);
-        Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
-    }
-     if (SYM.CODE == AFF_TOKEN){
-        AFFEC();}
-        else{
-        procedure_or_function_calling();}
-        break;
-    case FUNCTION_TOKEN:
-        procedure_and_function_declaration_part();
-        break;
-    case PROCEDURE_TOKEN:
-        procedure_and_function_declaration_part();
-        break;
-    case IF_TOKEN:
-        SI();
-        break;
-    case FOR_TOKEN:
-        POUR();
-        break;
+        case ID_TOKEN: //usage d'un identifiant
+            //check si il a ete declare
+            exists = check_if_declared(SYM.NOM);
+            if(exists == 1){
+                Sym_Suiv();
+                if (SYM.CODE == PT_TOKEN){
+                    Sym_Suiv();
+                    Test_Symbole(ID_TOKEN, ID_ERR);
+                }
+                if (SYM.CODE == CROCHETO_TOKEN){
+                        Sym_Suiv();
+                        Test_Symbole(ID_TOKEN, ID_ERR);
+                        Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
+                }
+                if (SYM.CODE == AFF_TOKEN){
+                        is_constant_affectee(SYM.NOM);
+                        AFFEC();}
+                else{ procedure_or_function_calling();}
+                break;
+            }else{
+                printf("Erreur: cet identifiant n'a pas ete declare: %s, ligne %d", SYM.NOM, ligne_actuelle);
+                exit(1);
+            }
 
-    case WHILE_TOKEN:
-        TANTQUE();
-        break;
-    case WRITE_TOKEN:
-        ECRIRE();
-        break;
-    case READ_TOKEN:
-        LIRE();
-        break;
-    default:
-        break;
-    }
+        case FUNCTION_TOKEN:
+            procedure_and_function_declaration_part();
+            break;
+
+        case PROCEDURE_TOKEN:
+            procedure_and_function_declaration_part();
+            break;
+
+        case IF_TOKEN:
+            SI();
+            break;
+
+        case FOR_TOKEN:
+            POUR();
+            break;
+
+        case WHILE_TOKEN:
+            TANTQUE();
+            break;
+
+        case WRITE_TOKEN:
+            ECRIRE();
+            break;
+
+        case READ_TOKEN:
+            LIRE();
+            break;
+
+        default:
+            break;
+        }
 }
+
 
 //===================== AFFEC ==========================
 void AFFEC()
@@ -1779,7 +1749,6 @@ void AFFEC()
     //ID := EXPR
    // Test_Symbole(ID_TOKEN, ID_ERR);
     Test_Symbole(AFF_TOKEN, AFF_ERR);
-
     EXPR();
 }
 
@@ -1829,28 +1798,17 @@ void LIRE()
 {
     Test_Symbole(READ_TOKEN, READ_ERR);
     Test_Symbole(PO_TOKEN, PO_ERR);
-    if (SYM.CODE == QUOTE_TOKEN){
-        string();
-    }
-    else if (SYM.CODE==ID_TOKEN)
-     {
+    if (SYM.CODE == QUOTE_TOKEN){ string(); }
+    else if (SYM.CODE==ID_TOKEN) { Sym_Suiv(); }
+    while (SYM.CODE == VIR_TOKEN) {
         Sym_Suiv();
-    }
-    while (SYM.CODE == VIR_TOKEN)
-    {
-        Sym_Suiv();
-  if (SYM.CODE == QUOTE_TOKEN){
-        string();
-    }
-
-
+        if (SYM.CODE == QUOTE_TOKEN){ string(); }
     }
     if (SYM.CODE == CROCHETO_TOKEN){
         Sym_Suiv();
         Test_Symbole(ID_TOKEN, ID_ERR);
         Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
-    }
-    else if (SYM.CODE== PT_TOKEN){
+    } else if (SYM.CODE== PT_TOKEN){
         Sym_Suiv();
         Test_Symbole(ID_TOKEN, ID_ERR);
     }
@@ -1895,25 +1853,20 @@ void REPETER()
 void POUR()
 {
     Test_Symbole(FOR_TOKEN, FOR_ERR);//à AJOUTER
-    printf("\n pas de prob dans for \n");
     Test_Symbole(ID_TOKEN, ID_ERR);
-        printf("\n pas de prob dans id \n");
-
     Test_Symbole(AFF_TOKEN, AFF_ERR);
-        printf("\n pas de prob dans := \n");
+    printf("\n pas de prob dans := \n");
 
     FACT();
-        printf("\n pas de prob dans fact \n");
+    printf("\n pas de prob dans fact \n");
 
     Test_Symbole(TO_TOKEN, TO_ERR);
-        printf("\n pas de prob dans to \n");
+    printf("\n pas de prob dans to \n");
 
     FACT();
-        printf("\n pas de prob dans fact2 \n");
+    printf("\n pas de prob dans fact2 \n");
 
     Test_Symbole(DO_TOKEN, DO_ERR);
-        printf("\n pas de prob dans do \n");
-
     INST();
 }
 
@@ -2003,18 +1956,16 @@ void FACT()
     {
     case ID_TOKEN:
         Test_Symbole(ID_TOKEN, ID_ERR);
-        if (SYM.CODE== PO_TOKEN){
-            procedure_or_function_calling();
-        }
-        else if (SYM.CODE== CROCHETO_TOKEN){
-        Sym_Suiv();
-        Test_Symbole(ID_TOKEN, ID_ERR);
-        Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
-    }else if (SYM.CODE== PT_TOKEN){
-        Sym_Suiv();
-        Test_Symbole(ID_TOKEN, ID_ERR);
-    }
-        break;
+        if (SYM.CODE == PO_TOKEN){ procedure_or_function_calling(); }
+        else if (SYM.CODE == CROCHETO_TOKEN){
+                Sym_Suiv();
+                Test_Symbole(ID_TOKEN, ID_ERR);
+                Test_Symbole(CROCHETF_TOKEN, CROCHETF_ERR);
+            }else if (SYM.CODE== PT_TOKEN){
+                Sym_Suiv();
+                Test_Symbole(ID_TOKEN, ID_ERR);
+            }
+            break;
     case NUM_TOKEN:
         Test_Symbole(NUM_TOKEN, NUM_ERR);
         break;
@@ -2102,6 +2053,57 @@ void NTOP()
     }
 }
 
+// ======================================= semantique ================================
+// regle 3: ts les symboles identifiants etre declares avant BEGIN
+int check_if_declared(char* idf_nom){
+    for(int i=0; i < TIDFS_indice; i++){
+        if (strcmp(TAB_IDFS[i].NOM, idf_nom) == 0) {
+                return 1;
+        }
+    }
+    return 0;
+}
+//regle 2: pas de double declaration
+void double_declaration(char* idf_nom, TSYM idf_code){
+    int exist = 0;
+    for(int i=0; i < TIDFS_indice; i++){
+        if (strcmp(TAB_IDFS[i].NOM, idf_nom) == 0) {
+                exist = 1;
+                break;
+        }
+    }
+    if(exist == 0){
+        strncpy(TAB_IDFS[TIDFS_indice].NOM, idf_nom, sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1);
+        TAB_IDFS[TIDFS_indice].NOM[sizeof(TAB_IDFS[TIDFS_indice].NOM) - 1] = '\0';
+        TAB_IDFS[TIDFS_indice].TIDF = idf_code;
+        TIDFS_indice++;
+    } else {
+        printf("Erreur: double declaration de %s, ligne %d\n", idf_nom, ligne_actuelle);
+        exit(1);
+    }
+}
+
+//regle 4: pas d'affectation pour les constantes
+
+void is_constant_affectee(char* idf_nom){
+    for(int i=0; i < TIDFS_indice; i++){
+        if (strcmp(TAB_IDFS[i].NOM, idf_nom) == 0) {
+                if(TAB_IDFS[i].TIDF == TCONST){
+                    printf("Erreur: Pas d'affectation pour les constantes: %s, ligne %d\n", idf_nom, ligne_actuelle);
+                    exit(1);
+                }
+        }
+    }
+}
+
+//regle 5: pas de declaration avec le nom du programme
+void illegal_program_name(char* idf_nom){
+    if(TAB_IDFS[0].NOM != NULL && stricmp(idf_nom, TAB_IDFS[0].NOM) == 0){
+        printf("Erreur: Declaration illegale: interdit de declarer une variable avec le nom du programme %s, ligne %d\n", idf_nom, ligne_actuelle);
+        exit (1);
+    }
+}
+
 //===================== main ==========================
 
 /*
@@ -2144,6 +2146,10 @@ int main()
     if (SYM.CODE == PT_TOKEN)
     {
         printf("BRAVO de main: le programme est correcte on arrive a la fin !!!\n");
+        printf("Contenu de TAB_IDFS :\n");
+        for (int i = 0; i < TIDFS_indice; i++) {
+            printf("Indice %d : %s\n", i, TAB_IDFS[i].NOM);
+        }
     }
     else
     {
