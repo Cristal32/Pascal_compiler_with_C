@@ -312,7 +312,7 @@ void ECRIRE()
     else{
     EXPR();
     GENERER2(LDA, TABSYM[IND_DER_SYM_ACC].ADRESSE);
-    GENERER1(LDV);
+    GENERER1(PRN);
     }
     while (SYM.CODE == VIR_TOKEN)
     {
@@ -323,7 +323,7 @@ if (SYM.CODE == QUOTE_TOKEN){
     else{
     EXPR();
     GENERER2(LDA, TABSYM[IND_DER_SYM_ACC].ADRESSE);
-    GENERER1(LDV);    }
+    GENERER1(PRN);    }
     }
     Test_Symbole(PF_TOKEN, PF_ERR);
     // Ajouter du code pour afficher le p-code généré pour cette instruction
