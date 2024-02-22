@@ -1663,6 +1663,12 @@ void AFFEC()
     Test_Symbole(AFF_TOKEN, AFF_ERR);
     EXPR();
     GENERER1(STO);
+    // Ajouter du code pour afficher le p-code généré pour cette instruction
+    printf("=== P-Code de la définition de constante ===\n");
+    printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+    printf("LDI %d\n", SYM.VAL);
+    printf("STO\n");
+    printf("===========================================\n");
 }
 
 /*void SI()
@@ -1849,6 +1855,12 @@ void EXPR()
         TERM();
         GENERER1(OP);
     }
+    // Ajouter du code pour afficher le p-code généré pour cette instruction
+    printf("=== P-Code de la définition de constante ===\n");
+    printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+    printf("LDI %d\n", SYM.VAL);
+    printf("STO\n");
+    printf("===========================================\n");
 }
 
 //===================== TERM ==========================
@@ -1862,6 +1874,12 @@ void TERM()
         FACT();
         GENERER1(OP);
     }
+    // Ajouter du code pour afficher le p-code généré pour cette instruction
+    printf("=== P-Code de la définition de constante ===\n");
+    printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+    printf("LDI %d\n", SYM.VAL);
+    printf("STO\n");
+    printf("===========================================\n");
 }
 
 //===================== FACT ==========================
@@ -1899,6 +1917,12 @@ void FACT()
         Erreur(ERREUR_ERR);
         break;
     }
+    // Ajouter du code pour afficher le p-code généré pour cette instruction
+    printf("=== P-Code de la définition de constante ===\n");
+    printf("LDA %d\n", TABLESYM[IND_DER_SYM_ACC].ADRESSE);
+    printf("LDI %d\n", SYM.VAL);
+    printf("STO\n");
+    printf("===========================================\n");
 }
 
 //===================== RELOP ==========================
