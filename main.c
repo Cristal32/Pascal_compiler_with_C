@@ -121,7 +121,7 @@ typedef enum {TPROG, TCONST, TVAR} TSYM;
 
 //============================================= pour p-Code==================================
 // Définition des constantes
-#define TABLEINDEX 100 // Taille du tableau TABLESYM
+#define TABLEINDEX 1000 // Taille du tableau TABLESYM
 
 
 // Structure pour représenter un enregistrement dans TABLESYM
@@ -147,7 +147,7 @@ int OFFSET;
 typedef enum {
     ADD, SUB, MUL, DIV, EQL, NEQ, GTR,
     LSS, GEQ, LEQ, PRN, INN, INT, LDI, LDA,
-    LDV, STO, BRN, BZE, HLT, OP
+    LDV, STO, BRN, BZE, HLT
 } MNEMONIQUES;
 
 // Structure pour représenter une instruction
@@ -249,6 +249,35 @@ void afficher_contenu_pile() {
             case GTR:
                 printf("GTR\n");
                 break;
+            case LSS:
+                printf("LSS\n");
+                break;
+            case LEQ:
+                printf("LEQ\n");
+                break;
+            case GEQ:
+                printf("GEQ\n");
+                break;
+            case PRN:
+                printf("PRN\n");
+                break;
+            case INN:
+                printf("INN\n");
+                break;
+            case INT:
+                printf("INT\n");
+                break;
+            case BRN:
+                printf("BRN\n");
+                break;
+             case BZE:
+                printf("BZE\n");
+                break;
+             case HLT:
+                printf("HLT\n");
+                break;
+            
+            
             // Ajoutez d'autres cas pour les autres mnémoniques selon vos besoins
 
             case LDI:
@@ -272,6 +301,7 @@ void afficher_contenu_pile() {
     }
 }
 
+//===================================================================================
 
 
 // ============================= table de symboles =====================================
@@ -616,6 +646,9 @@ void PROGRAM()
     Test_Symbole(PV_TOKEN, PV_ERR);
     BLOCK();
     GENERER1(HLT);
+      printf("=== Contenu de la pile après l'opération ===\n");
+        afficher_contenu_pile();
+        printf("===========================================\n");
 
 
     //Test_Symbole(PT_TOKEN, PT_ERR);
@@ -797,9 +830,9 @@ void constant_definition() {
     printf("LDI %d\n", SYM.VAL);
     printf("STO\n");
     printf("===========================================\n");*/
-    printf("=== Contenu de la pile après l'opération ===\n");
+   /*/ printf("=== Contenu de la pile après l'opération ===\n");
         afficher_contenu_pile();
-        printf("===========================================\n");
+        printf("===========================================\n");*/
 }
 //===================== constant ==========================
 // Fonction pour analyser une constante
@@ -830,9 +863,9 @@ void constant() {
     printf("LDI %d\n", SYM.VAL);
     printf("STO\n");
     printf("===========================================\n");*/
-    printf("=== Contenu de la pile après l'opération ===\n");
+  /*  printf("=== Contenu de la pile après l'opération ===\n");
         afficher_contenu_pile();
-        printf("===========================================\n");
+        printf("===========================================\n");*/
 
 }
 //===================== unsigned_number ==========================
@@ -1507,7 +1540,9 @@ void variable_declaration() {
     // Appeler la fonction de l'identifiant de variable
     //printf("je suis dans variable_declaration \n");
     variable_identifier();
-
+            int adresse_constante = obtenir_adresse_constante();
+             TABLESYM[IND_DER_SYM_ACC].ADRESSE = adresse_constante;
+             GENERER2(LDA, adresse_constante); 
     // Tant que nous trouvons une virgule, lire d'autres identifiants de variables
     while (SYM.CODE == VIR_TOKEN) {
         // Consommer la virgule
@@ -1521,6 +1556,9 @@ void variable_declaration() {
 
         // Appeler la fonction de l'identifiant de variable
         variable_identifier();
+        int adresse_constante = obtenir_adresse_constante();
+             TABLESYM[IND_DER_SYM_ACC].ADRESSE = adresse_constante;
+             GENERER2(LDA, adresse_constante); 
     }
 
     // Vérifier si le prochain jeton est ":"
@@ -1784,9 +1822,9 @@ void INST(){
         default:
             break;
         }
-          printf("=== Contenu de la pile après l'opération ===\n");
+       /*   printf("=== Contenu de la pile après l'opération ===\n");
         afficher_contenu_pile();
-        printf("===========================================\n");
+        printf("===========================================\n");*/
 }
 
 
@@ -1798,9 +1836,9 @@ void AFFEC()
     Test_Symbole(AFF_TOKEN, AFF_ERR);
     EXPR();
     GENERER1(STO);
-      printf("=== Contenu de la pile après l'opération ===\n");
+   /*   printf("=== Contenu de la pile après l'opération ===\n");
         afficher_contenu_pile();
-        printf("===========================================\n");
+        printf("===========================================\n");*/
 }
 
 /*void SI()
@@ -1987,9 +2025,9 @@ void EXPR()
         TERM();
         GENERER1(ADD);
     }
-      printf("=== Contenu de la pile après l'opération ===\n");
+     /* printf("=== Contenu de la pile après l'opération ===\n");
         afficher_contenu_pile();
-        printf("===========================================\n");
+        printf("===========================================\n");*/
 }
 
 //===================== TERM ==========================
@@ -2003,9 +2041,9 @@ void TERM()
         FACT();
         GENERER1(MUL);
     }
-     printf("=== Contenu de la pile après l'opération ===\n");
+   /* printf("=== Contenu de la pile après l'opération ===\n");
         afficher_contenu_pile();
-        printf("===========================================\n");
+        printf("===========================================\n");*/
 }
 
 //===================== FACT ==========================
@@ -2047,9 +2085,9 @@ void FACT()
         Erreur(ERREUR_ERR);
         break;
     }
-    printf("=== Contenu de la pile après l'opération ===\n");
+  /*  printf("=== Contenu de la pile après l'opération ===\n");
         afficher_contenu_pile();
-        printf("===========================================\n");
+        printf("===========================================\n");*/
 }
 
 //===================== RELOP ==========================
