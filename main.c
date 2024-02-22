@@ -1632,7 +1632,8 @@ void formal_parameter_section() {
 
 void function_declaration() {
     function_heading();
-    BLOCK();
+    variable_declaration_part();
+    INSTS();
     //printf("on a termine function_declaration \n");
 }
 
