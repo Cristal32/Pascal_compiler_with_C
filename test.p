@@ -7,10 +7,13 @@ const
     MAX = 100;
     PI = 3;
 var
-    num1, num2, num3: integer;
+    num1, num2: integer;
 
 procedure DisplayMessage(msg: string);
+var
+   x: integer;
 begin
+    x := 2;
     writeln(msg);
 end;
 
