@@ -6,7 +6,7 @@ Sadly this work is unfinished, we couldn't implement all the desired grammar rul
 
 ## How to use
 
-Simply compile and execute the main.c file, here's what should be displayed upon execution:
+Simply compile and execute the main.c file, here's what should be displayed upon execution (with the test pascal file test.p):
 
 ![image](https://github.com/Cristal32/Pascal_compiler_with_C/assets/114748477/fb6224ca-381e-44b2-9102-882d7f5ca00c)
 
